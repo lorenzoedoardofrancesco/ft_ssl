@@ -42,13 +42,24 @@ void sha256_compression(uint32_t *block, uint32_t **hash)
 	*a += h1, *b += h2, *c += h3, *d += h4, *e += h5, *f += h6, *g += h7, *h += h8;
 }
 
-void sha256(ssl *ssl)
+void sha256(void **blocks, size_t num_of_blocks)
 {
-	uint32_t h1 = H1, h2 = H2, h3 = H3, h4 = H4, h5 = H5, h6 = H6, h7 = H7, h8 = H8;
+	uint32_t h1 = SHA_256_H1, h2 = SHA_256_H2, h3 = SHA_256_H3, h4 = SHA_256_H4, h5 = SHA_256_H5, h6 = SHA_256_H6, h7 = SHA_256_H7, h8 = SHA_256_H8;
 	uint32_t *hash[HASH_SHA256] = {&h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8};
 
-	for (size_t i = 0; i < ssl->num_of_blocks; ++i)
-		sha256_compression(ssl->blocks[i], hash);
+	for (size_t i = 0; i < num_of_blocks; ++i)
+		sha256_compression(blocks[i], hash);
 
 	write_hash(hash, HASH_SHA256);
+}
+
+void sha224(void **blocks, size_t num_of_blocks)
+{
+	uint32_t h1 = SHA_224_H1, h2 = SHA_224_H2, h3 = SHA_224_H3, h4 = SHA_224_H4, h5 = SHA_224_H5, h6 = SHA_224_H6, h7 = SHA_224_H7, h8 = SHA_224_H8;
+	uint32_t *hash[HASH_SHA256] = {&h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8};
+
+	for (size_t i = 0; i < num_of_blocks; ++i)
+		sha256_compression(blocks[i], hash);
+
+	write_hash(hash, HASH_SHA224);
 }

@@ -65,13 +65,13 @@ void md5_compression(uint32_t *block, uint32_t **hash)
 	*hash[0] += a, *hash[1] += b, *hash[2] += c, *hash[3] += d;
 }
 
-void md5(ssl *ssl)
+void md5(void **blocks, size_t num_of_blocks)
 {
 	uint32_t a = A, b = B, c = C, d = D;
 	uint32_t *hash[HASH_MD5] = {&a, &b, &c, &d};
 
-	for (size_t i = 0; i < ssl->num_of_blocks; ++i)
-		md5_compression(ssl->blocks[i], hash);
+	for (size_t i = 0; i < num_of_blocks; ++i)
+		md5_compression(blocks[i], hash);
 
 	write_hash(hash, HASH_MD5);
 }
