@@ -46,46 +46,38 @@ void sha512_compression(uint64_t *block, uint64_t **hash)
 	*a += h1, *b += h2, *c += h3, *d += h4, *e += h5, *f += h6, *g += h7, *h += h8;
 }
 
-void sha512(void **blocks, size_t num_of_blocks)
+void sha512_general(void **blocks, size_t num_of_blocks, uint64_t *hash_seed, size_t hash_size)
 {
-	uint64_t h1 = SHA_512_H1, h2 = SHA_512_H2, h3 = SHA_512_H3, h4 = SHA_512_H4, h5 = SHA_512_H5, h6 = SHA_512_H6, h7 = SHA_512_H7, h8 = SHA_512_H8;
-	uint64_t *hash[HASH_SHA512] = {&h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8};
+	uint64_t *hash[HASH_SHA512];
+	for (size_t i = 0; i < HASH_SHA512; ++i)
+		hash[i] = &hash_seed[i];
 
 	for (size_t i = 0; i < num_of_blocks; ++i)
 		sha512_compression(blocks[i], hash);
 
-	write_hash_64(hash, HASH_SHA512);
+	write_hash_64(hash, hash_size);
 }
 
 void sha384(void **blocks, size_t num_of_blocks)
 {
-	uint64_t h1 = SHA_384_H1, h2 = SHA_384_H2, h3 = SHA_384_H3, h4 = SHA_384_H4, h5 = SHA_384_H5, h6 = SHA_384_H6, h7 = SHA_384_H7, h8 = SHA_384_H8;
-	uint64_t *hash[HASH_SHA512] = {&h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8};
+	uint64_t hash[HASH_SHA512] = {SHA_384_H1, SHA_384_H2, SHA_384_H3, SHA_384_H4, SHA_384_H5, SHA_384_H6, SHA_384_H7, SHA_384_H8};
+	sha512_general(blocks, num_of_blocks, hash, HASH_SHA384);
+}
 
-	for (size_t i = 0; i < num_of_blocks; ++i)
-		sha512_compression(blocks[i], hash);
-
-	write_hash_64(hash, HASH_SHA384);
+void sha512(void **blocks, size_t num_of_blocks)
+{
+	uint64_t hash[HASH_SHA512] = {SHA_512_H1, SHA_512_H2, SHA_512_H3, SHA_512_H4, SHA_512_H5, SHA_512_H6, SHA_512_H7, SHA_512_H8};
+	sha512_general(blocks, num_of_blocks, hash, HASH_SHA512);
 }
 
 void sha512_224(void **blocks, size_t num_of_blocks)
 {
-	uint64_t h1 = SHA_512_224_H1, h2 = SHA_512_224_H2, h3 = SHA_512_224_H3, h4 = SHA_512_224_H4, h5 = SHA_512_224_H5, h6 = SHA_512_224_H6, h7 = SHA_512_224_H7, h8 = SHA_512_224_H8;
-	uint64_t *hash[HASH_SHA512] = {&h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8};
-
-	for (size_t i = 0; i < num_of_blocks; ++i)
-		sha512_compression(blocks[i], hash);
-
-	write_hash_64(hash, HASH_SHA512_224);
+	uint64_t hash[HASH_SHA512] = {SHA_512_224_H1, SHA_512_224_H2, SHA_512_224_H3, SHA_512_224_H4, SHA_512_224_H5, SHA_512_224_H6, SHA_512_224_H7, SHA_512_224_H8};
+	sha512_general(blocks, num_of_blocks, hash, HASH_SHA512_224);
 }
 
 void sha512_256(void **blocks, size_t num_of_blocks)
 {
-	uint64_t h1 = SHA_512_256_H1, h2 = SHA_512_256_H2, h3 = SHA_512_256_H3, h4 = SHA_512_256_H4, h5 = SHA_512_256_H5, h6 = SHA_512_256_H6, h7 = SHA_512_256_H7, h8 = SHA_512_256_H8;
-	uint64_t *hash[HASH_SHA512] = {&h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8};
-
-	for (size_t i = 0; i < num_of_blocks; ++i)
-		sha512_compression(blocks[i], hash);
-
-	write_hash_64(hash, HASH_SHA512_256);
+	uint64_t hash[HASH_SHA512] = {SHA_512_256_H1, SHA_512_256_H2, SHA_512_256_H3, SHA_512_256_H4, SHA_512_256_H5, SHA_512_256_H6, SHA_512_256_H7, SHA_512_256_H8};
+	sha512_general(blocks, num_of_blocks, hash, HASH_SHA512_256);
 }

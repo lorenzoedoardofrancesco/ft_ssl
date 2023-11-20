@@ -3,15 +3,17 @@
 int little_endian = 0; // a mettre dans la structure hash_map ??
 
 hash_map hash_functions[] =
-	{
-		{"md5", md5, MD5_WORDS_NUMBER, MD5_WORD_SIZE, MD5_LENGTH_FIELD_SIZE, MD5_PADDING_BYTE},
-		{"sha224", sha224, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, SHA_256_PADDING_BYTE},
-		{"sha256", sha256, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, SHA_256_PADDING_BYTE},
-		{"sha384", sha384, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, SHA_512_PADDING_BYTE},
-		{"sha512", sha512, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, SHA_512_PADDING_BYTE},
-		{"sha512-224", sha512_224, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, SHA_512_PADDING_BYTE},
-		{"sha512-256", sha512_256, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, SHA_512_PADDING_BYTE},
-		{NULL, NULL, 0, 0, 0, 0}};
+{
+	{"md5", md5, MD5_WORDS_NUMBER, MD5_WORD_SIZE, MD5_LENGTH_FIELD_SIZE, false},
+	{"sha224", sha224, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
+	{"sha256", sha256, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
+	{"sha384", sha384, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+	{"sha512", sha512, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+	{"sha512-224", sha512_224, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+	{"sha512-256", sha512_256, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+	{"whirlpool", whirlpool, WHIRLPOOL_WORDS_NUMBER, WHIRLPOOL_WORD_SIZE, WHIRLPOOL_LENGTH_FIELD_SIZE, false},
+	{NULL, NULL, 0, 0, 0, false}
+};
 
 hash_map *find_hash_function(const char *name)
 {
@@ -21,84 +23,56 @@ hash_map *find_hash_function(const char *name)
 	return NULL;
 }
 
-void append_length_32(uint32_t *block, uint64_t length)
+void append_length(uint64_t *block, uint64_t length, size_t length_field_size, bool big_endian)
 {
-	block[MD5_WORDS_NUMBER - 1 - little_endian] = (uint32_t)(length & 0xFFFFFFFF);
-	block[MD5_WORDS_NUMBER - 2 + little_endian] = (uint32_t)(length >> 32);
-}
-
-void copy_input_to_block_32(uint32_t *block, const char *input, size_t byte_index, size_t input_len)
-{
-	*block = 0;
-	for (size_t k = 0; k < 4; ++k)
+	if (length_field_size == sizeof(uint64_t))
 	{
-		if (byte_index + k < input_len)
-			*block |= (uint32_t)((unsigned char)input[byte_index + k]) << (little_endian ? 8 * k : 8 * (3 - k));
-		else if (byte_index + k == input_len)
-			*block |= 0x80 << (little_endian ? 8 * k : 8 * (3 - k));
+		uint32_t *block32 = (uint32_t *)block;
+		int shift = (big_endian) ? 1 : 0;
+
+		*(block32 + shift) = (uint32_t)(length & 0xFFFFFFFF);
+		*(block32 + 1 - shift) = (uint32_t)(length >> 32);
 	}
+	else if (length_field_size == sizeof(__uint128_t))
+		*(block + 1) = length;
 }
 
-void **fill_blocks_32(uint32_t **blocks, size_t num_of_blocks, size_t words_per_block, size_t block_size, const char *input, size_t input_len, uint32_t padding)
+void **fill_blocks(void **blocks_ptr, size_t num_of_blocks, size_t word_size, size_t block_size, const char *input, size_t input_len, size_t length_field_size, bool big_endian)
 {
+	uint8_t **blocks = (uint8_t **)blocks_ptr;
+	size_t w = word_size;
+
 	for (size_t i = 0; i < num_of_blocks; ++i)
 	{
-		for (size_t j = 0; j < words_per_block; ++j)
+		for (size_t j = 0; j < block_size; ++j)
 		{
-			size_t byte_index = i * block_size + j * 4;
+			size_t byte_index = i * block_size + j;
+			size_t index = (big_endian) ? ((j / w) * w + (w - 1) - j % w) : j;
 
 			if (byte_index < input_len)
-				copy_input_to_block_32(&blocks[i][j], input, byte_index, input_len);
+				blocks[i][index] = input[byte_index];
 			else if (byte_index == input_len)
-				blocks[i][j] = padding;
+				blocks[i][index] = 0x80;
 			else
-				blocks[i][j] = 0;
+				blocks[i][index] = 0;
 		}
 	}
 
-	append_length_32(blocks[num_of_blocks - 1], input_len * 8);
-	return (void **)blocks;
+	uint8_t *last_block_end = blocks[num_of_blocks - 1] + block_size;
+	uint64_t *len_field_start = (uint64_t *)(last_block_end - length_field_size);
+	append_length(len_field_start, input_len * 8, length_field_size, big_endian);
+
+	return blocks_ptr;
 }
 
-void append_length_64(uint64_t *block, size_t words_per_block, uint64_t length)
-{
-	block[words_per_block - 1] = length;
-}
-
-void copy_input_to_block_64(uint64_t *block, const char *input, size_t byte_index, size_t input_len)
-{
-	*block = 0;
-	for (size_t k = 0; k < 8; ++k)
-	{
-		if (byte_index + k < input_len)
-			*block |= (uint64_t)((unsigned char)input[byte_index + k]) << (8 * (7 - k));
-		else if (byte_index + k == input_len)
-			*block |= (uint64_t)0x80 << (8 * (7 - k));
-	}
-}
-
-void **fill_blocks_64(uint64_t **blocks, size_t num_of_blocks, size_t words_per_block, size_t block_size, const char *input, size_t input_len, uint64_t padding)
+void free_blocks(void **blocks, size_t num_of_blocks)
 {
 	for (size_t i = 0; i < num_of_blocks; ++i)
-	{
-		for (size_t j = 0; j < words_per_block; ++j)
-		{
-			size_t byte_index = i * block_size + j * 8;
-
-			if (byte_index < input_len)
-				copy_input_to_block_64(&blocks[i][j], input, byte_index, input_len);
-			else if (byte_index == input_len)
-				blocks[i][j] = padding;
-			else
-				blocks[i][j] = 0;
-		}
-	}
-
-	append_length_64(blocks[num_of_blocks - 1], words_per_block, input_len * 8);
-	return (void **)blocks;
+		free(blocks[i]);
+	free(blocks);
 }
 
-void **initialize_blocks(size_t num_of_blocks, size_t words_per_block, size_t word_size, const char *input, size_t input_len, uint64_t padding)
+void **initialize_blocks(size_t num_of_blocks, size_t words_per_block, size_t word_size, const char *input, size_t input_len, size_t length_field_size, bool big_endian)
 {
 	size_t block_size = words_per_block * word_size;
 
@@ -111,24 +85,12 @@ void **initialize_blocks(size_t num_of_blocks, size_t words_per_block, size_t wo
 		blocks[i] = malloc(block_size);
 		if (!blocks[i])
 		{
-			for (size_t j = 0; j < i; ++j)
-				free(blocks[j]);
-			free(blocks);
+			free_blocks(blocks, i);
 			return NULL;
 		}
 	}
 
-	if (word_size == sizeof(uint32_t))
-		return fill_blocks_32((uint32_t **)blocks, num_of_blocks, words_per_block, block_size, input, input_len, padding);
-	else
-		return fill_blocks_64((uint64_t **)blocks, num_of_blocks, words_per_block, block_size, input, input_len, padding);
-}
-
-void free_blocks(void **blocks, size_t num_of_blocks)
-{
-	for (size_t i = 0; i < num_of_blocks; ++i)
-		free(blocks[i]);
-	free(blocks);
+	return fill_blocks(blocks, num_of_blocks, word_size, block_size, input, input_len, length_field_size, big_endian);
 }
 
 void process_hash(const char *hash_name, const char *input)
@@ -136,14 +98,20 @@ void process_hash(const char *hash_name, const char *input)
 	hash_map *hash_map = find_hash_function(hash_name);
 	if (hash_map == NULL)
 	{
-		fprintf(stderr, "Unknown hash function: %s\n", hash_name);
+		fprintf(stderr, "Unknown hash function: %s\n", hash_name); // changer
 		return;
 	}
 
 	size_t input_len = strlen(input);
 	size_t num_of_blocks = (input_len + hash_map->length_field_size) / (hash_map->word_size * hash_map->words_number) + 1;
 
-	void **blocks = initialize_blocks(num_of_blocks, hash_map->words_number, hash_map->word_size, input, input_len, hash_map->padding_byte);
+	void **blocks = initialize_blocks(num_of_blocks, hash_map->words_number, hash_map->word_size, input, input_len, hash_map->length_field_size, hash_map->big_endian);
+	if (!blocks)
+	{
+		fprintf(stderr, "Memory allocation error\n"); // changer  -> faire une function error
+		return;
+	}
+
 	hash_map->function(blocks, num_of_blocks);
 	free_blocks(blocks, num_of_blocks);
 }
@@ -152,7 +120,9 @@ void process_hash(const char *hash_name, const char *input)
 ///
 ///
 ///
-
+///
+///
+/// a nettoyer completement: faudra utiliser des void** et peut etre j de 8 a 0 et pas vice versa
 void write_hex_byte(uint8_t byte)
 {
 	char hex[2];
