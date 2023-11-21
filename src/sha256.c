@@ -51,7 +51,7 @@ void sha256_general(void **blocks, size_t num_of_blocks, uint32_t *hash_seed, si
 	for (size_t i = 0; i < num_of_blocks; ++i)
 		sha256_compression(blocks[i], hash);
 
-	write_hash(hash, hash_size);
+	write_hash((uint8_t *)hash_seed, hash_size, sizeof(uint32_t) - 1);  // hash_seed, hash_size, sizeof(hash_seed[0]) - 1
 }
 
 void sha256(void **blocks, size_t num_of_blocks)

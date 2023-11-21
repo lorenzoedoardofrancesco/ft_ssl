@@ -23,7 +23,7 @@ static const uint32_t k[64] =
 static const uint8_t r[16] =
 {
 	7, 12, 17, 22,
-	5, 9, 14, 20,
+	5,  9, 14, 20,
 	4, 11, 16, 23,
 	6, 10, 15, 21
 };
@@ -68,10 +68,13 @@ void md5_compression(uint32_t *block, uint32_t **hash)
 void md5(void **blocks, size_t num_of_blocks)
 {
 	uint32_t a = A, b = B, c = C, d = D;
-	uint32_t *hash[HASH_MD5] = {&a, &b, &c, &d};
+	uint32_t *hash[4] = {&a, &b, &c, &d};  // macro ?
 
 	for (size_t i = 0; i < num_of_blocks; ++i)
 		md5_compression(blocks[i], hash);
 
-	write_hash(hash, HASH_MD5);
+	uint32_t hash_final[4] = {a, b, c, d};
+	
+
+	write_hash((uint8_t*)hash_final, HASH_MD5, 0);
 }

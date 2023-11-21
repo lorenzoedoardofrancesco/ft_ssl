@@ -1,19 +1,16 @@
 #include "ft_ssl.h"
 
-int little_endian = 0; // a mettre dans la structure hash_map ??
-
 hash_map hash_functions[] =
-{
-	{"md5", md5, MD5_WORDS_NUMBER, MD5_WORD_SIZE, MD5_LENGTH_FIELD_SIZE, false},
-	{"sha224", sha224, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
-	{"sha256", sha256, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
-	{"sha384", sha384, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-	{"sha512", sha512, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-	{"sha512-224", sha512_224, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-	{"sha512-256", sha512_256, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-	{"whirlpool", whirlpool, WHIRLPOOL_WORDS_NUMBER, WHIRLPOOL_WORD_SIZE, WHIRLPOOL_LENGTH_FIELD_SIZE, false},
-	{NULL, NULL, 0, 0, 0, false}
-};
+	{
+		{"md5", md5, MD5_WORDS_NUMBER, MD5_WORD_SIZE, MD5_LENGTH_FIELD_SIZE, false},
+		{"sha224", sha224, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
+		{"sha256", sha256, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
+		{"sha384", sha384, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+		{"sha512", sha512, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+		{"sha512-224", sha512_224, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+		{"sha512-256", sha512_256, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+		{"whirlpool", whirlpool, WHIRLPOOL_WORDS_NUMBER, WHIRLPOOL_WORD_SIZE, WHIRLPOOL_LENGTH_FIELD_SIZE, false},
+		{NULL, NULL, 0, 0, 0, false}};
 
 hash_map *find_hash_function(const char *name)
 {
@@ -27,14 +24,13 @@ void append_length(uint64_t *block, uint64_t length, size_t length_field_size, b
 {
 	if (length_field_size == sizeof(uint64_t))
 	{
-		uint32_t *block32 = (uint32_t *)block;
-		int shift = (big_endian) ? 1 : 0;
-
-		*(block32 + shift) = (uint32_t)(length & 0xFFFFFFFF);
-		*(block32 + 1 - shift) = (uint32_t)(length >> 32);
+		uint64_t length_big_endian = ((uint64_t)((uint32_t)(length & 0xFFFFFFFF)) << 32) | (uint32_t)(length >> 32);
+		*block = big_endian ? length_big_endian : length;
 	}
 	else if (length_field_size == sizeof(__uint128_t))
 		*(block + 1) = length;
+	else if (length_field_size == sizeof(__uint128_t) * 2)
+		*(block + 3) = SWAP64(length);
 }
 
 void **fill_blocks(void **blocks_ptr, size_t num_of_blocks, size_t word_size, size_t block_size, const char *input, size_t input_len, size_t length_field_size, bool big_endian)
@@ -116,13 +112,6 @@ void process_hash(const char *hash_name, const char *input)
 	free_blocks(blocks, num_of_blocks);
 }
 
-///
-///
-///
-///
-///
-///
-/// a nettoyer completement: faudra utiliser des void** et peut etre j de 8 a 0 et pas vice versa
 void write_hex_byte(uint8_t byte)
 {
 	char hex[2];
@@ -132,24 +121,9 @@ void write_hex_byte(uint8_t byte)
 	write(1, hex, 2);
 }
 
-void write_hash(uint32_t **hash, hash_size size)
+void write_hash(uint8_t *hash, hash_size size, int x)
 {
 	for (int i = 0; i < (int)size; ++i)
-		for (int j = 0; j < 4; j++)
-		{
-			int shift = (size == HASH_MD5) ? (8 * j) : (24 - 8 * j); // MD5 is little endian, SHA256 is big endian
-			write_hex_byte((*hash[i] >> shift) & 0xFF);
-		}
-	write(1, "  - \n", 5);
-}
-
-void write_hash_64(uint64_t **hash, hash_size size)
-{
-	for (int i = 0; i < (int)size; ++i)
-		for (int j = 0; j < 8; j++)
-		{
-			int shift = 56 - 8 * j; // Big endian
-			write_hex_byte((*hash[i] >> shift) & 0xFF);
-		}
+		write_hex_byte(hash[i ^ x]);
 	write(1, "  - \n", 5);
 }

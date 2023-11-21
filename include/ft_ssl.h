@@ -26,14 +26,14 @@
 
 typedef enum
 {
-	HASH_MD5 = 4,
-	HASH_SHA224 = 7,
-	HASH_SHA256 = 8,
-	HASH_SHA384 = 6,
-	HASH_SHA512 = 8,
-	HASH_SHA512_224 = 3,
-	HASH_SHA512_256 = 4,
-	HASH_WHIRLPOOL = 8
+	HASH_MD5 = 16,
+	HASH_SHA224 = 28,
+	HASH_SHA256 = 32,
+	HASH_SHA384 = 48,
+	HASH_SHA512 = 64,
+	HASH_SHA512_224 = 28,
+	HASH_SHA512_256 = 32,
+	HASH_WHIRLPOOL = 64
 } hash_size;
 
 typedef void (*hash_function)(void **blocks, size_t num_of_blocks);
@@ -48,8 +48,13 @@ typedef struct hash_map_s
 	bool big_endian;
 } hash_map;
 
-void write_hash(uint32_t **hash, hash_size size);
-void write_hash_64(uint64_t **hash, hash_size size);
+#define SWAP64(x) ( \
+    (((x) >> 56) & 0xFF)       | (((x) << 56) & 0xFF00000000000000UL) | \
+    (((x) >> 40) & 0xFF00)     | (((x) << 40) & 0xFF000000000000UL)   | \
+    (((x) >> 24) & 0xFF0000)   | (((x) << 24) & 0xFF0000000000UL)     | \
+    (((x) >> 8)  & 0xFF000000) | (((x) << 8)  & 0xFF00000000UL) )
+
+void write_hash(uint8_t *hash, hash_size size , int x);
 
 /*\\\            /\\\\   /\\\\\\\\\\\\      /\\\\\\\\\\\\\\\
 \/\\\\\\        /\\\\\\  \/\\\////////\\\   \/\\\///////////
@@ -258,3 +263,4 @@ void process_hash(const char *input, const char *hash_name);
 
 // utils.c
 size_t strlen(const char *s);
+void *ft_memcpy(void *dest, const void *src, size_t n);

@@ -48,14 +48,14 @@ void sha512_compression(uint64_t *block, uint64_t **hash)
 
 void sha512_general(void **blocks, size_t num_of_blocks, uint64_t *hash_seed, size_t hash_size)
 {
-	uint64_t *hash[HASH_SHA512];
-	for (size_t i = 0; i < HASH_SHA512; ++i)
+	uint64_t *hash[8]; // macro?
+	for (size_t i = 0; i < 8; ++i)
 		hash[i] = &hash_seed[i];
 
 	for (size_t i = 0; i < num_of_blocks; ++i)
 		sha512_compression(blocks[i], hash);
 
-	write_hash_64(hash, hash_size);
+	write_hash((uint8_t *)hash_seed, hash_size, sizeof(uint64_t) - 1);   // hash_seed, hash_size, sizeof(hash_seed[0]) - 1
 }
 
 void sha384(void **blocks, size_t num_of_blocks)
