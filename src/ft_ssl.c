@@ -1,14 +1,17 @@
 #include "ft_ssl.h"
 
+int error(const char *message)
+{
+	write(STDERR_FILENO, message, strlen(message));
+	return EXIT_FAILURE;
+}
+
 int main(int argc, char *argv[])
 {
-	if (argc < 3)
-	{
-		printf("usage: ft_ssl command [command opts] [command args]\n");
-		return EXIT_FAILURE;
-	}
+	if (argc < 2)
+		return error(HELP_MESSAGE);
 
-	process_hash(argv[1], argv[2]);
+	message_digest(argv[1], argv[2]);
 
 	return EXIT_SUCCESS;
 }

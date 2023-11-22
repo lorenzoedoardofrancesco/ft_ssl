@@ -1,16 +1,17 @@
 #include "ft_ssl.h"
-
+ // FAIRE LE TESTEUR QUI TEST AUSSI LE TEMPS D'EXECUTION. VOIR C'EST QUOI LES FUNCTIONS QUI RENDENT LE PROGRAMME LENT
 hash_map hash_functions[] =
-	{
-		{"md5", md5, MD5_WORDS_NUMBER, MD5_WORD_SIZE, MD5_LENGTH_FIELD_SIZE, false},
-		{"sha224", sha224, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
-		{"sha256", sha256, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
-		{"sha384", sha384, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-		{"sha512", sha512, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-		{"sha512-224", sha512_224, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-		{"sha512-256", sha512_256, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-		{"whirlpool", whirlpool, WHIRLPOOL_WORDS_NUMBER, WHIRLPOOL_WORD_SIZE, WHIRLPOOL_LENGTH_FIELD_SIZE, false},
-		{NULL, NULL, 0, 0, 0, false}};
+{
+	{"md5", md5, MD5_WORDS_NUMBER, MD5_WORD_SIZE, MD5_LENGTH_FIELD_SIZE, false},
+	{"sha224", sha224, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
+	{"sha256", sha256, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
+	{"sha384", sha384, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+	{"sha512", sha512, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+	{"sha512-224", sha512_224, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+	{"sha512-256", sha512_256, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
+	{"whirlpool", whirlpool, WHIRLPOOL_WORDS_NUMBER, WHIRLPOOL_WORD_SIZE, WHIRLPOOL_LENGTH_FIELD_SIZE, false},
+	{NULL, NULL, 0, 0, 0, false}
+};
 
 hash_map *find_hash_function(const char *name)
 {
@@ -89,7 +90,7 @@ void **initialize_blocks(size_t num_of_blocks, size_t words_per_block, size_t wo
 	return fill_blocks(blocks, num_of_blocks, word_size, block_size, input, input_len, length_field_size, big_endian);
 }
 
-void process_hash(const char *hash_name, const char *input)
+void message_digest(const char *hash_name, const char *input)
 {
 	hash_map *hash_map = find_hash_function(hash_name);
 	if (hash_map == NULL)
@@ -125,5 +126,6 @@ void write_hash(uint8_t *hash, hash_size size, int x)
 {
 	for (int i = 0; i < (int)size; ++i)
 		write_hex_byte(hash[i ^ x]);
-	write(1, "  - \n", 5);
+	write(1, "\n", 1);
+	// write(1, "  - \n", 5);
 }
