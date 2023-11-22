@@ -67,14 +67,11 @@ void md5_compression(uint32_t *block, uint32_t **hash)
 
 void md5(void **blocks, size_t num_of_blocks)
 {
-	uint32_t a = A, b = B, c = C, d = D;
-	uint32_t *hash[4] = {&a, &b, &c, &d};  // macro ?
+	uint32_t hash_seed[4] = {A, B, C, D};
+	uint32_t *hash[4] = {&hash_seed[0], &hash_seed[1], &hash_seed[2], &hash_seed[3]};
 
 	for (size_t i = 0; i < num_of_blocks; ++i)
 		md5_compression(blocks[i], hash);
 
-	uint32_t hash_final[4] = {a, b, c, d};
-	
-
-	write_hash((uint8_t*)hash_final, HASH_MD5, 0);
+	write_hash((uint8_t *)hash_seed, HASH_MD5, 0);
 }

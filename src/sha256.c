@@ -44,10 +44,8 @@ void sha256_compression(uint32_t *block, uint32_t **hash)
 
 void sha256_general(void **blocks, size_t num_of_blocks, uint32_t *hash_seed, size_t hash_size)
 {
-	uint32_t *hash[HASH_SHA256];
-	for (size_t i = 0; i < HASH_SHA256; ++i)
-		hash[i] = &hash_seed[i];
-
+	uint32_t *hash[8] = {&hash_seed[0], &hash_seed[1], &hash_seed[2], &hash_seed[3], &hash_seed[4], &hash_seed[5], &hash_seed[6], &hash_seed[7]};
+	
 	for (size_t i = 0; i < num_of_blocks; ++i)
 		sha256_compression(blocks[i], hash);
 
@@ -56,12 +54,12 @@ void sha256_general(void **blocks, size_t num_of_blocks, uint32_t *hash_seed, si
 
 void sha256(void **blocks, size_t num_of_blocks)
 {
-	uint32_t hash[HASH_SHA256] = {SHA_256_H1, SHA_256_H2, SHA_256_H3, SHA_256_H4, SHA_256_H5, SHA_256_H6, SHA_256_H7, SHA_256_H8};
+	uint32_t hash[8] = {SHA_256_H1, SHA_256_H2, SHA_256_H3, SHA_256_H4, SHA_256_H5, SHA_256_H6, SHA_256_H7, SHA_256_H8};
 	sha256_general(blocks, num_of_blocks, hash, HASH_SHA256);
 }
 
 void sha224(void **blocks, size_t num_of_blocks)
 {
-	uint32_t hash[HASH_SHA256] = {SHA_224_H1, SHA_224_H2, SHA_224_H3, SHA_224_H4, SHA_224_H5, SHA_224_H6, SHA_224_H7, SHA_224_H8};
+	uint32_t hash[8] = {SHA_224_H1, SHA_224_H2, SHA_224_H3, SHA_224_H4, SHA_224_H5, SHA_224_H6, SHA_224_H7, SHA_224_H8};
 	sha256_general(blocks, num_of_blocks, hash, HASH_SHA224);
 }

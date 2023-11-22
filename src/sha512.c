@@ -48,9 +48,7 @@ void sha512_compression(uint64_t *block, uint64_t **hash)
 
 void sha512_general(void **blocks, size_t num_of_blocks, uint64_t *hash_seed, size_t hash_size)
 {
-	uint64_t *hash[8]; // macro?
-	for (size_t i = 0; i < 8; ++i)
-		hash[i] = &hash_seed[i];
+	uint64_t *hash[8] = {&hash_seed[0], &hash_seed[1], &hash_seed[2], &hash_seed[3], &hash_seed[4], &hash_seed[5], &hash_seed[6], &hash_seed[7]};
 
 	for (size_t i = 0; i < num_of_blocks; ++i)
 		sha512_compression(blocks[i], hash);
@@ -60,24 +58,24 @@ void sha512_general(void **blocks, size_t num_of_blocks, uint64_t *hash_seed, si
 
 void sha384(void **blocks, size_t num_of_blocks)
 {
-	uint64_t hash[HASH_SHA512] = {SHA_384_H1, SHA_384_H2, SHA_384_H3, SHA_384_H4, SHA_384_H5, SHA_384_H6, SHA_384_H7, SHA_384_H8};
+	uint64_t hash[8] = {SHA_384_H1, SHA_384_H2, SHA_384_H3, SHA_384_H4, SHA_384_H5, SHA_384_H6, SHA_384_H7, SHA_384_H8};
 	sha512_general(blocks, num_of_blocks, hash, HASH_SHA384);
 }
 
 void sha512(void **blocks, size_t num_of_blocks)
 {
-	uint64_t hash[HASH_SHA512] = {SHA_512_H1, SHA_512_H2, SHA_512_H3, SHA_512_H4, SHA_512_H5, SHA_512_H6, SHA_512_H7, SHA_512_H8};
+	uint64_t hash[8] = {SHA_512_H1, SHA_512_H2, SHA_512_H3, SHA_512_H4, SHA_512_H5, SHA_512_H6, SHA_512_H7, SHA_512_H8};
 	sha512_general(blocks, num_of_blocks, hash, HASH_SHA512);
 }
 
 void sha512_224(void **blocks, size_t num_of_blocks)
 {
-	uint64_t hash[HASH_SHA512] = {SHA_512_224_H1, SHA_512_224_H2, SHA_512_224_H3, SHA_512_224_H4, SHA_512_224_H5, SHA_512_224_H6, SHA_512_224_H7, SHA_512_224_H8};
+	uint64_t hash[8] = {SHA_512_224_H1, SHA_512_224_H2, SHA_512_224_H3, SHA_512_224_H4, SHA_512_224_H5, SHA_512_224_H6, SHA_512_224_H7, SHA_512_224_H8};
 	sha512_general(blocks, num_of_blocks, hash, HASH_SHA512_224);
 }
 
 void sha512_256(void **blocks, size_t num_of_blocks)
 {
-	uint64_t hash[HASH_SHA512] = {SHA_512_256_H1, SHA_512_256_H2, SHA_512_256_H3, SHA_512_256_H4, SHA_512_256_H5, SHA_512_256_H6, SHA_512_256_H7, SHA_512_256_H8};
+	uint64_t hash[8] = {SHA_512_256_H1, SHA_512_256_H2, SHA_512_256_H3, SHA_512_256_H4, SHA_512_256_H5, SHA_512_256_H6, SHA_512_256_H7, SHA_512_256_H8};
 	sha512_general(blocks, num_of_blocks, hash, HASH_SHA512_256);
 }
