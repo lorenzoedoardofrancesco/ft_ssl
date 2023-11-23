@@ -90,15 +90,15 @@ void **initialize_blocks(size_t num_of_blocks, size_t words_per_block, size_t wo
 	return fill_blocks(blocks, num_of_blocks, word_size, block_size, input, input_len, length_field_size, big_endian);
 }
 
-void message_digest(const char *hash_name, const char *input)
+int message_digest(char *hash_name, char *argv[])
 {
 	hash_map *hash_map = find_hash_function(hash_name);
 	if (hash_map == NULL)
 	{
 		fprintf(stderr, "Unknown hash function: %s\n", hash_name); // changer
-		return;
+		return EXIT_FAILURE;
 	}
-
+	char *input = argv[0]; //
 	size_t input_len = strlen(input);
 	size_t num_of_blocks = (input_len + hash_map->length_field_size) / (hash_map->word_size * hash_map->words_number) + 1;
 
@@ -106,11 +106,12 @@ void message_digest(const char *hash_name, const char *input)
 	if (!blocks)
 	{
 		fprintf(stderr, "Memory allocation error\n"); // changer  -> faire une function error
-		return;
+		return EXIT_FAILURE;
 	}
 
 	hash_map->function(blocks, num_of_blocks);
 	free_blocks(blocks, num_of_blocks);
+	return EXIT_SUCCESS;
 }
 
 void write_hex_byte(uint8_t byte)
