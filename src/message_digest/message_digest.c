@@ -1,16 +1,16 @@
 #include "ft_ssl.h"
- // FAIRE LE TESTEUR QUI TEST AUSSI LE TEMPS D'EXECUTION. VOIR C'EST QUOI LES FUNCTIONS QUI RENDENT LE PROGRAMME LENT
+
 hash_map hash_functions[] =
 {
-	{"md5", md5, MD5_WORDS_NUMBER, MD5_WORD_SIZE, MD5_LENGTH_FIELD_SIZE, false},
-	{"sha224", sha224, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
-	{"sha256", sha256, SHA_256_WORDS_NUMBER, SHA_256_WORD_SIZE, SHA_256_LENGTH_FIELD_SIZE, true},
-	{"sha384", sha384, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-	{"sha512", sha512, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-	{"sha512-224", sha512_224, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-	{"sha512-256", sha512_256, SHA_512_WORDS_NUMBER, SHA_512_WORD_SIZE, SHA_512_LENGTH_FIELD_SIZE, true},
-	{"whirlpool", whirlpool, WHIRLPOOL_WORDS_NUMBER, WHIRLPOOL_WORD_SIZE, WHIRLPOOL_LENGTH_FIELD_SIZE, false},
-	{NULL, NULL, 0, 0, 0, false}
+	{"md5", md5, MD5_WORD_SIZE, MD5_BLOCK_SIZE, MD5_LENGTH_FIELD_SIZE, md5_append_length, md5_hash, {0}, HASH_MD5, 0, false, 0, 0, 1, 0},
+	{"sha224", sha256, SHA_256_WORD_SIZE, SHA_256_BLOCK_SIZE, SHA_256_LENGTH_FIELD_SIZE, sha256_append_length, sha224_hash, {0}, HASH_SHA224, sizeof(uint32_t) - 1, true, 0, 0, 1, 0},
+	{"sha256", sha256, SHA_256_WORD_SIZE, SHA_256_BLOCK_SIZE, SHA_256_LENGTH_FIELD_SIZE, sha256_append_length, sha256_hash, {0}, HASH_SHA256, sizeof(uint32_t) - 1, true, 0, 0, 1, 0},
+	{"sha384", sha512, SHA_512_WORD_SIZE, SHA_512_BLOCK_SIZE, SHA_512_LENGTH_FIELD_SIZE, sha512_append_length, sha384_hash, {0}, HASH_SHA384, sizeof(uint64_t) - 1, true, 0, 0, 1, 0},
+	{"sha512", sha512, SHA_512_WORD_SIZE, SHA_512_BLOCK_SIZE, SHA_512_LENGTH_FIELD_SIZE, sha512_append_length, sha512_hash, {0}, HASH_SHA512, sizeof(uint64_t) - 1, true, 0, 0, 1, 0},
+	{"sha512-224", sha512, SHA_512_WORD_SIZE, SHA_512_BLOCK_SIZE, SHA_512_LENGTH_FIELD_SIZE, sha512_append_length, sha512_224_hash, {0}, HASH_SHA512_224, sizeof(uint64_t) - 1, true, 0, 0, 1, 0},
+	{"sha512-256", sha512, SHA_512_WORD_SIZE, SHA_512_BLOCK_SIZE, SHA_512_LENGTH_FIELD_SIZE, sha512_append_length, sha512_256_hash, {0}, HASH_SHA512_256, sizeof(uint64_t) - 1, true, 0, 0, 1, 0},
+	{"whirlpool", whirlpool, WHIRLPOOL_WORD_SIZE, WHIRLPOOL_BLOCK_SIZE, WHIRLPOOL_LENGTH_FIELD_SIZE, whirlpool_append_length, whirlpool_hash, {0}, HASH_WHIRLPOOL, 0, false, 0, 0, 1, 0},
+	{NULL, NULL, 0, 0, 0, NULL, NULL, {0}, 0, 0, false, 0, 0, 0, 0}
 };
 
 hash_map *find_hash_function(const char *name)
@@ -21,96 +21,86 @@ hash_map *find_hash_function(const char *name)
 	return NULL;
 }
 
-void append_length(uint64_t *block, uint64_t length, size_t length_field_size, bool big_endian)
+void append_length(uint8_t *block, hash_map *H)
 {
-	if (length_field_size == sizeof(uint64_t))
+	size_t len_field_start = H->i + H->length_field_size < H->block_size ? H->block_size - sizeof(uint64_t) : H->block_size * 2 - sizeof(uint64_t);
+	uint64_t *length_field = (uint64_t *)(block + len_field_start);
+
+	size_t w = H->word_size;
+	while (H->i < len_field_start)
 	{
-		uint64_t length_big_endian = ((uint64_t)((uint32_t)(length & 0xFFFFFFFF)) << 32) | (uint32_t)(length >> 32);
-		*block = big_endian ? length_big_endian : length;
+		size_t index = (H->big_endian) ? ((H->i / w) * w + (w - 1) - H->i % w) : H->i;
+		if (H->i == H->length % H->block_size)
+			block[index] = 0x80;
+		else
+			block[index] = 0;
+		++H->i;
 	}
-	else if (length_field_size == sizeof(__uint128_t))
-		*(block + 1) = length;
-	else if (length_field_size == sizeof(__uint128_t) * 2)
-		*(block + 3) = SWAP64(length);
+	
+	*length_field = H->append_length(H->length * 8);
 }
 
-void **fill_blocks(void **blocks_ptr, size_t num_of_blocks, size_t word_size, size_t block_size, const char *input, size_t input_len, size_t length_field_size, bool big_endian)
+void fill_block(uint8_t *block, hash_map *H, char *input)
 {
-	uint8_t **blocks = (uint8_t **)blocks_ptr;
-	size_t w = word_size;
+	size_t w = H->word_size;
+	size_t end = H->i + H->bytes_read;
 
-	for (size_t i = 0; i < num_of_blocks; ++i)
+	while (H->i < end)
 	{
-		for (size_t j = 0; j < block_size; ++j)
-		{
-			size_t byte_index = i * block_size + j;
-			size_t index = (big_endian) ? ((j / w) * w + (w - 1) - j % w) : j;
+		size_t index = (H->big_endian) ? ((H->i / w) * w + (w - 1) - H->i % w) : H->i;
 
-			if (byte_index < input_len)
-				blocks[i][index] = input[byte_index];
-			else if (byte_index == input_len)
-				blocks[i][index] = 0x80;
-			else
-				blocks[i][index] = 0;
-		}
+		block[index] = input[H->i];
+		++H->i;
 	}
-
-	uint8_t *last_block_end = blocks[num_of_blocks - 1] + block_size;
-	uint64_t *len_field_start = (uint64_t *)(last_block_end - length_field_size);
-	append_length(len_field_start, input_len * 8, length_field_size, big_endian);
-
-	return blocks_ptr;
 }
 
-void free_blocks(void **blocks, size_t num_of_blocks)
+int input_check(char *file_name)
 {
-	for (size_t i = 0; i < num_of_blocks; ++i)
-		free(blocks[i]);
-	free(blocks);
-}
+	if (file_name == NULL)
+		return STDIN_FILENO;
 
-void **initialize_blocks(size_t num_of_blocks, size_t words_per_block, size_t word_size, const char *input, size_t input_len, size_t length_field_size, bool big_endian)
-{
-	size_t block_size = words_per_block * word_size;
-
-	void **blocks = malloc(sizeof(void *) * num_of_blocks);
-	if (!blocks)
-		return NULL;
-
-	for (size_t i = 0; i < num_of_blocks; ++i)
+	int fd = open(file_name, O_RDONLY);
+	if (fd == -1)
 	{
-		blocks[i] = malloc(block_size);
-		if (!blocks[i])
-		{
-			free_blocks(blocks, i);
-			return NULL;
-		}
+		fprintf(stderr, "Can't open file: %s\n", file_name);
+		return EXIT_FAILURE;
 	}
-
-	return fill_blocks(blocks, num_of_blocks, word_size, block_size, input, input_len, length_field_size, big_endian);
+	return fd;
 }
 
 int message_digest(char *hash_name, char *argv[])
 {
-	hash_map *hash_map = find_hash_function(hash_name);
-	if (hash_map == NULL)
+	hash_map *H = find_hash_function(hash_name);
+	if (H == NULL)
 	{
-		fprintf(stderr, "Unknown hash function: %s\n", hash_name); // changer
-		return EXIT_FAILURE;
-	}
-	char *input = argv[0]; //
-	size_t input_len = strlen(input);
-	size_t num_of_blocks = (input_len + hash_map->length_field_size) / (hash_map->word_size * hash_map->words_number) + 1;
-
-	void **blocks = initialize_blocks(num_of_blocks, hash_map->words_number, hash_map->word_size, input, input_len, hash_map->length_field_size, hash_map->big_endian);
-	if (!blocks)
-	{
-		fprintf(stderr, "Memory allocation error\n"); // changer  -> faire une function error
+		fprintf(stderr, "Unknown hash function: %s\n", hash_name);
 		return EXIT_FAILURE;
 	}
 
-	hash_map->function(blocks, num_of_blocks);
-	free_blocks(blocks, num_of_blocks);
+	H->fd = input_check(argv[0]);
+	H->hash_seed(H->hash);
+	uint8_t block[H->block_size * 2];
+	char buffer[H->block_size];
+
+	while (H->bytes_read)
+	{
+		error(H->bytes_read = read(H->fd, buffer + H->i, H->block_size - H->i));
+		H->length += H->bytes_read;
+
+		if (H->bytes_read == 0)
+			append_length(block, H);
+
+		fill_block(block, H, buffer);
+		if (H->i == H->block_size || H->bytes_read == 0)
+		{
+			H->function(block, H->hash);
+			if (H->i > H->block_size)
+				H->function(block + H->block_size, H->hash);
+			H->i = 0;
+		}
+	}
+
+	write_hash(H->hash, H->hash_size, H->hash_mask);
 	return EXIT_SUCCESS;
 }
 

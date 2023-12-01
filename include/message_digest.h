@@ -1,17 +1,9 @@
 #pragma once
 #include "ft_ssl.h"
 
-typedef void (*hash_function)(void **blocks, size_t num_of_blocks);
-
-typedef struct hash_map_s
-{
-	const char *name;
-	hash_function function;
-	size_t words_number;
-	size_t word_size;
-	size_t length_field_size;
-	bool big_endian;
-} hash_map;
+typedef void (*hash_function)(uint8_t *block, uint8_t *hash);
+typedef void (*hash_seed_function)(uint8_t *hash);
+typedef uint64_t (*append_length_function)(size_t length);
 
 typedef enum
 {
@@ -24,6 +16,25 @@ typedef enum
 	HASH_SHA512_256 = 32,
 	HASH_WHIRLPOOL = 64
 } hash_size;
+
+typedef struct hash_map_s
+{
+	const char *name;
+	hash_function function;
+	size_t word_size;
+	size_t block_size;
+	size_t length_field_size;
+	append_length_function append_length;
+	hash_seed_function hash_seed;
+	uint8_t hash[64];
+	hash_size hash_size;
+	int hash_mask;
+	bool big_endian;
+	int fd;
+	size_t length;
+	size_t bytes_read;
+	size_t i;
+} hash_map;
 
 #define SWAP64(x) (                                               \
 	(((x) >> 56) & 0xFF) | (((x) << 56) & 0xFF00000000000000UL) | \
@@ -52,6 +63,7 @@ void write_hash(uint8_t *hash, hash_size size, int x);
 #define MD5_WORDS_NUMBER 16
 #define MD5_WORD_SIZE sizeof(uint32_t)
 #define MD5_LENGTH_FIELD_SIZE sizeof(uint64_t)
+#define MD5_BLOCK_SIZE (MD5_WORDS_NUMBER * MD5_WORD_SIZE)
 
 #define A 0x67452301
 #define B 0xefcdab89
@@ -91,7 +103,9 @@ void write_hash(uint8_t *hash, hash_size size, int x);
 		a += b;                   \
 	}
 
-void md5(void **blocks, size_t num_of_blocks);
+void md5(uint8_t *block, uint8_t *hash);
+void md5_hash(uint8_t *hash);
+uint64_t md5_append_length(size_t length);
 
 /*
  /\\\\\\\\\\\     /\\\        /\\\      /\\\\\\\\\
@@ -117,6 +131,7 @@ void md5(void **blocks, size_t num_of_blocks);
 #define SHA_256_WORDS_NUMBER 16
 #define SHA_256_WORD_SIZE sizeof(uint32_t)
 #define SHA_256_LENGTH_FIELD_SIZE sizeof(uint64_t)
+#define SHA_256_BLOCK_SIZE (SHA_256_WORDS_NUMBER * SHA_256_WORD_SIZE)
 
 #define SHA_224_H1 0xc1059ed8
 #define SHA_224_H2 0x367cd507
@@ -144,8 +159,11 @@ void md5(void **blocks, size_t num_of_blocks);
 #define SSIG0(x) (ROTATE_RIGHT(x, 7) ^ ROTATE_RIGHT(x, 18) ^ (x >> 3))
 #define SSIG1(x) (ROTATE_RIGHT(x, 17) ^ ROTATE_RIGHT(x, 19) ^ (x >> 10))
 
-void sha224(void **blocks, size_t num_of_blocks);
-void sha256(void **blocks, size_t num_of_blocks);
+void sha224(uint8_t *block, uint8_t *hash);
+void sha256(uint8_t *block, uint8_t *hash);
+void sha256_hash(uint8_t *hash);
+void sha224_hash(uint8_t *hash);
+uint64_t sha256_append_length(size_t length);
 
 /*
  /\\\\\\\\\\\     /\\\        /\\\      /\\\\\\\\\
@@ -156,14 +174,14 @@ void sha256(void **blocks, size_t num_of_blocks);
 		 \////\\\     \/\\\       \/\\\  \/\\\/////////\\\
    /\\\      \//\\\    \/\\\       \/\\\  \/\\\       \/\\\
    \///\\\\\\\\\\\/     \/\\\       \/\\\  \/\\\       \/\\\
-      \///////////       \///        \///   \///        \///
+	  \///////////       \///        \///   \///        \///
 
 	   /\\\\\\\\\\\\\\\        /\\\     /\\\\\\\\\
-       \/\\\///////////     /\\\\\\\   /\\\///////\\\
+	   \/\\\///////////     /\\\\\\\   /\\\///////\\\
 		\/\\\               \/////\\\  \///      \//\\\
 		 \/\\\\\\\\\\\\          \/\\\            /\\\/
 		  \////////////\\\        \/\\\         /\\\//
-		 			  \//\\\       \/\\\      /\\\//
+					  \//\\\       \/\\\      /\\\//
 			/\\\        \/\\\       \/\\\    /\\\/
 			\//\\\\\\\\\\\\\/        \/\\\   /\\\\\\\\\\\\\\\
 			  \/////////////          \///   \/////////////*/
@@ -171,6 +189,7 @@ void sha256(void **blocks, size_t num_of_blocks);
 #define SHA_512_WORDS_NUMBER 16
 #define SHA_512_WORD_SIZE sizeof(uint64_t)
 #define SHA_512_LENGTH_FIELD_SIZE sizeof(__int128_t)
+#define SHA_512_BLOCK_SIZE (SHA_512_WORDS_NUMBER * SHA_512_WORD_SIZE)
 
 #define SHA_384_H1 0xcbbb9d5dc1059ed8
 #define SHA_384_H2 0x629a292a367cd507
@@ -213,10 +232,15 @@ void sha256(void **blocks, size_t num_of_blocks);
 #define SSIG0_512(x) (ROTATE_RIGHT_64(x, 1) ^ ROTATE_RIGHT_64(x, 8) ^ (x >> 7))
 #define SSIG1_512(x) (ROTATE_RIGHT_64(x, 19) ^ ROTATE_RIGHT_64(x, 61) ^ (x >> 6))
 
-void sha384(void **blocks, size_t num_of_blocks);
-void sha512(void **blocks, size_t num_of_blocks);
-void sha512_224(void **blocks, size_t num_of_blocks);
-void sha512_256(void **blocks, size_t num_of_blocks);
+void sha384(uint8_t *block, uint8_t *hash);
+void sha512(uint8_t *block, uint8_t *hash);
+void sha512_224(uint8_t *block, uint8_t *hash);
+void sha512_256(uint8_t *block, uint8_t *hash);
+void sha384_hash(uint8_t *hash);
+void sha512_hash(uint8_t *hash);
+void sha512_224_hash(uint8_t *hash);
+void sha512_256_hash(uint8_t *hash);
+uint64_t sha512_append_length(size_t length);
 
 /*\\              /\\\
 \/\\\             \/\\\
@@ -231,5 +255,8 @@ void sha512_256(void **blocks, size_t num_of_blocks);
 #define WHIRLPOOL_WORDS_NUMBER 8
 #define WHIRLPOOL_WORD_SIZE sizeof(uint64_t)
 #define WHIRLPOOL_LENGTH_FIELD_SIZE sizeof(__int128_t) * 2
+#define WHIRLPOOL_BLOCK_SIZE (WHIRLPOOL_WORDS_NUMBER * WHIRLPOOL_WORD_SIZE)
 
-void whirlpool(void **blocks, size_t num_of_blocks);
+void whirlpool(uint8_t *block, uint8_t *hash);
+void whirlpool_hash(uint8_t *hash);
+uint64_t whirlpool_append_length(size_t length);

@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <errno.h>
 
 #include "message_digest.h"
 #include "cipher.h"
@@ -45,3 +46,5 @@ int print_error(const char *message);
 // utils.c
 size_t strlen(const char *s);
 void *ft_memcpy(void *dest, const void *src, size_t n);
+void ft_memset(void *dest, int c, size_t len);
+void error(int ret);

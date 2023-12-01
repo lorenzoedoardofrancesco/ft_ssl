@@ -79,7 +79,7 @@ void mix_rows(uint8_t *matrix)
 		for (int j = 0; j < 8; ++j)
 			for (int k = 0; k < 8; ++k)
 				temp[i * 8 + j] ^= gmul(matrix[i * 8 + k], mds_matrix[k * 8 + j]);
-				
+
 	ft_memcpy(matrix, temp, 64);
 }
 
@@ -91,7 +91,7 @@ void whirlpool_round(uint8_t *matrix, uint8_t *key, size_t size)
 	add_key(matrix, key, size);
 }
 
-void whirlpool_chipher(uint64_t *block, uint8_t *hash)
+void whirlpool(uint8_t *block, uint8_t *hash)
 {
 	uint8_t matrix[64] = {0}, key[64] = {0};
 	ft_memcpy(matrix, block, 64);
@@ -100,20 +100,21 @@ void whirlpool_chipher(uint64_t *block, uint8_t *hash)
 	add_key(matrix, key, 64);
 	for (int i = 0; i < 10; ++i)
 	{
-		whirlpool_round(key, (uint8_t *)s_box + 8 * i, 8);
+		whirlpool_round(key, (uint8_t *)s_box + 8 * i, 8); // ???
 		whirlpool_round(matrix, key, 64);
 	}
 
-	add_key(matrix, (uint8_t *)block, 64);
+	add_key(matrix, block, 64);
 	add_key(hash, matrix, 64);
 }
 
-void whirlpool(void **blocks, size_t num_of_blocks)
+void whirlpool_hash(uint8_t *hash)
 {
-	uint8_t hash[64] = {0};
+	(void)hash;
+	return;
+}
 
-	for (size_t i = 0; i < num_of_blocks; ++i)
-		whirlpool_chipher(blocks[i], hash);
-
-	write_hash(hash, HASH_WHIRLPOOL, 0);
+uint64_t whirlpool_append_length(size_t length)
+{
+	return SWAP64(length);
 }

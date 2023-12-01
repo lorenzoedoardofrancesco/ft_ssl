@@ -37,8 +37,13 @@ void rotate_right(uint32_t **hash)
 	hash[0] = tmp;
 }
 
-void md5_compression(uint32_t *block, uint32_t **hash)
+void md5(uint8_t *block_uint8, uint8_t *hash_uint8)
 {
+	uint32_t *block = (uint32_t *)block_uint8;
+	uint32_t *hash[4];
+	for (int i = 0; i < 4; i++)
+		hash[i] = (uint32_t *)(hash_uint8 + i * sizeof(uint32_t));
+
 	uint32_t a = *hash[0], b = *hash[1], c = *hash[2], d = *hash[3];
 
 	for (int i = 0; i < 16; ++i)
@@ -65,13 +70,13 @@ void md5_compression(uint32_t *block, uint32_t **hash)
 	*hash[0] += a, *hash[1] += b, *hash[2] += c, *hash[3] += d;
 }
 
-void md5(void **blocks, size_t num_of_blocks)
+void md5_hash(uint8_t *hash)
 {
 	uint32_t hash_seed[4] = {A, B, C, D};
-	uint32_t *hash[4] = {&hash_seed[0], &hash_seed[1], &hash_seed[2], &hash_seed[3]};
+	ft_memcpy(hash, hash_seed, sizeof(hash_seed));
+}
 
-	for (size_t i = 0; i < num_of_blocks; ++i)
-		md5_compression(blocks[i], hash);
-
-	write_hash((uint8_t *)hash_seed, HASH_MD5, 0);
+uint64_t md5_append_length(size_t length)
+{
+	return length;
 }

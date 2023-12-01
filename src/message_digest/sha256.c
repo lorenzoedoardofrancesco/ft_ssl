@@ -20,8 +20,13 @@ static const uint32_t k[64] =
 	0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-void sha256_compression(uint32_t *block, uint32_t **hash)
+void sha256(uint8_t *block_uint8, uint8_t *hash_uint8)
 {
+	uint32_t *block = (uint32_t *)block_uint8;
+	uint32_t *hash[8];
+	for (int i = 0; i < 8; i++)
+		hash[i] = (uint32_t *)(hash_uint8 + i * sizeof(uint32_t));
+
 	uint32_t h1 = *hash[0], h2 = *hash[1], h3 = *hash[2], h4 = *hash[3], h5 = *hash[4], h6 = *hash[5], h7 = *hash[6], h8 = *hash[7];
 	uint32_t *a = hash[0], *b = hash[1], *c = hash[2], *d = hash[3], *e = hash[4], *f = hash[5], *g = hash[6], *h = hash[7];
 
@@ -42,24 +47,20 @@ void sha256_compression(uint32_t *block, uint32_t **hash)
 	*a += h1, *b += h2, *c += h3, *d += h4, *e += h5, *f += h6, *g += h7, *h += h8;
 }
 
-void sha256_general(void **blocks, size_t num_of_blocks, uint32_t *hash_seed, size_t hash_size)
+void sha256_hash(uint8_t *hash)
 {
-	uint32_t *hash[8] = {&hash_seed[0], &hash_seed[1], &hash_seed[2], &hash_seed[3], &hash_seed[4], &hash_seed[5], &hash_seed[6], &hash_seed[7]};
-	
-	for (size_t i = 0; i < num_of_blocks; ++i)
-		sha256_compression(blocks[i], hash);
-
-	write_hash((uint8_t *)hash_seed, hash_size, sizeof(uint32_t) - 1);  // hash_seed, hash_size, sizeof(hash_seed[0]) - 1
+	uint32_t hash_seed[8] = {SHA_256_H1, SHA_256_H2, SHA_256_H3, SHA_256_H4, SHA_256_H5, SHA_256_H6, SHA_256_H7, SHA_256_H8};
+	ft_memcpy(hash, hash_seed, sizeof(hash_seed));
 }
 
-void sha256(void **blocks, size_t num_of_blocks)
+void sha224_hash(uint8_t *hash)
 {
-	uint32_t hash[8] = {SHA_256_H1, SHA_256_H2, SHA_256_H3, SHA_256_H4, SHA_256_H5, SHA_256_H6, SHA_256_H7, SHA_256_H8};
-	sha256_general(blocks, num_of_blocks, hash, HASH_SHA256);
+	uint32_t hash_seed[8] = {SHA_224_H1, SHA_224_H2, SHA_224_H3, SHA_224_H4, SHA_224_H5, SHA_224_H6, SHA_224_H7, SHA_224_H8};
+	ft_memcpy(hash, hash_seed, sizeof(hash_seed));
 }
 
-void sha224(void **blocks, size_t num_of_blocks)
+uint64_t sha256_append_length(size_t length)
 {
-	uint32_t hash[8] = {SHA_224_H1, SHA_224_H2, SHA_224_H3, SHA_224_H4, SHA_224_H5, SHA_224_H6, SHA_224_H7, SHA_224_H8};
-	sha256_general(blocks, num_of_blocks, hash, HASH_SHA224);
+	uint64_t length_big_endian = ((uint64_t)((uint32_t)(length & 0xFFFFFFFF)) << 32) | (uint32_t)(length >> 32);
+	return length_big_endian;
 }
