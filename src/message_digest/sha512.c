@@ -27,12 +27,10 @@ static const uint64_t k[80] =
 void sha512(uint8_t *block_uint8, uint8_t *hash_uint8)
 {
 	uint64_t *block = (uint64_t *)block_uint8;
-	uint64_t *hash[8];
-	for (int i = 0; i < 8; i++)
-		hash[i] = (uint64_t *)(hash_uint8 + i * sizeof(uint64_t));
+	uint64_t *hash = (uint64_t *)hash_uint8;
 
-	uint64_t h1 = *hash[0], h2 = *hash[1], h3 = *hash[2], h4 = *hash[3], h5 = *hash[4], h6 = *hash[5], h7 = *hash[6], h8 = *hash[7];
-	uint64_t *a = hash[0], *b = hash[1], *c = hash[2], *d = hash[3], *e = hash[4], *f = hash[5], *g = hash[6], *h = hash[7];
+	uint64_t h1 = hash[0], h2 = hash[1], h3 = hash[2], h4 = hash[3], h5 = hash[4], h6 = hash[5], h7 = hash[6], h8 = hash[7];
+	uint64_t *a = &hash[0], *b = &hash[1], *c = &hash[2], *d = &hash[3], *e = &hash[4], *f = &hash[5], *g = &hash[6], *h = &hash[7];
 
 	uint64_t w[80];
 

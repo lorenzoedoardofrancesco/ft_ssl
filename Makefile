@@ -1,7 +1,7 @@
 NAME		= ft_ssl
 
 CC			= gcc
-CFLAGS		= -Wall -Wextra -Werror -Iinclude
+CFLAGS		= -O3 -Wall -Wextra -Werror -Iinclude
 RM			= rm -f
 MKDIR		= mkdir -p
 VALGRIND	= valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -q
@@ -31,7 +31,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 $(NAME): $(OBJ)
-	$(CC) $(OBJ) -o $@ -lm
+	$(CC) $(OBJ) -o $@
 
 clean:
 	@echo "Removing object files..."
