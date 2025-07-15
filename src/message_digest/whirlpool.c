@@ -32,89 +32,92 @@ static const uint8_t mds_matrix[64] =
 	1, 4, 1, 8, 5, 2, 9, 1
 };
 
-void add_key(uint8_t *matrix, uint8_t *key, size_t size)
+void add_key(uint8_t* matrix, uint8_t* key, size_t size)
 {
-	for (size_t i = 0; i < size; ++i)
-		matrix[i] ^= key[i];
+    for (size_t i = 0; i < size; ++i) {
+        matrix[i] ^= key[i];
+    }
 }
 
-void substitute_bytes(uint8_t *matrix)
+void substitute_bytes(uint8_t* matrix)
 {
-	for (int i = 0; i < 64; ++i)
-		matrix[i] = s_box[matrix[i]];
+    for (int i = 0; i < 64; ++i) {
+        matrix[i] = s_box[matrix[i]];
+    }
 }
 
-void shift_columns(uint8_t *matrix)
+void shift_columns(uint8_t* matrix)
 {
-	uint8_t temp[64];
-	ft_memcpy(temp, matrix, 64);
+    uint8_t temp[64];
+    ft_memcpy(temp, matrix, 64);
 
-	for (int i = 0; i < 8; ++i)
-		for (int j = 1; j < 8; ++j)
-			matrix[i * 8 + j] = temp[(i - j + 8) % 8 * 8 + j];
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 1; j < 8; ++j) {
+            matrix[i * 8 + j] = temp[(i - j + 8) % 8 * 8 + j];
+        }
+    }
 }
 
 uint8_t gmul(uint8_t a, uint8_t b)
 {
-	uint8_t p = 0;
-	while (b)
-	{
-		if (b & 1)
-			p ^= a;
+    uint8_t p = 0;
+    while (b) {
+        if (b & 1) p ^= a;
 
-		if (a & 0x80)
-			a = (a << 1) ^ 0x1d;
-		else
-			a <<= 1;
-		b >>= 1;
-	}
-	return p;
+        if (a & 0x80) {
+            a = (a << 1) ^ 0x1d;
+        } else {
+            a <<= 1;
+        }
+
+        b >>= 1;
+    }
+    return p;
 }
 
-void mix_rows(uint8_t *matrix)
+void mix_rows(uint8_t* matrix)
 {
-	uint8_t temp[64] = {0};
+    uint8_t temp[64] = { 0 };
 
-	for (int i = 0; i < 8; ++i)
-		for (int j = 0; j < 8; ++j)
-			for (int k = 0; k < 8; ++k)
-				temp[i * 8 + j] ^= gmul(matrix[i * 8 + k], mds_matrix[k * 8 + j]);
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            for (int k = 0; k < 8; ++k) {
+                temp[i * 8 + j] ^= gmul(matrix[i * 8 + k], mds_matrix[k * 8 + j]);
+            }
+        }
+    }
 
-	ft_memcpy(matrix, temp, 64);
+    ft_memcpy(matrix, temp, 64);
 }
 
-void whirlpool_round(uint8_t *matrix, uint8_t *key, size_t size)
+void whirlpool_round(uint8_t* matrix, uint8_t* key, size_t size)
 {
-	substitute_bytes(matrix);
-	shift_columns(matrix);
-	mix_rows(matrix);
-	add_key(matrix, key, size);
+    substitute_bytes(matrix);
+    shift_columns(matrix);
+    mix_rows(matrix);
+    add_key(matrix, key, size);
 }
 
-void whirlpool(uint8_t *block, uint8_t *hash)
+void whirlpool(uint8_t* block, uint8_t* hash)
 {
-	uint8_t matrix[64] = {0}, key[64] = {0};
-	ft_memcpy(matrix, block, 64);
-	ft_memcpy(key, hash, 64);
+    uint8_t matrix[64] = { 0 }, key[64] = { 0 };
+    ft_memcpy(matrix, block, 64);
+    ft_memcpy(key, hash, 64);
 
-	add_key(matrix, key, 64);
-	for (int i = 0; i < 10; ++i)
-	{
-		whirlpool_round(key, (uint8_t *)s_box + 8 * i, 8); // ???
-		whirlpool_round(matrix, key, 64);
-	}
+    add_key(matrix, key, 64);
+    for (int i = 0; i < 10; ++i) {
+        whirlpool_round(key, (uint8_t*)s_box + 8 * i, 8);  // ???
+        whirlpool_round(matrix, key, 64);
+    }
 
-	add_key(matrix, block, 64);
-	add_key(hash, matrix, 64);
+    add_key(matrix, block, 64);
+    add_key(hash, matrix, 64);
 }
 
-void whirlpool_hash(uint8_t *hash)
+void whirlpool_hash(uint8_t* hash)
 {
-	(void)hash;
-	return;
+    (void)hash;
+    return;
 }
 
-uint64_t whirlpool_append_length(size_t length)
-{
-	return SWAP64(length);
-}
+uint64_t whirlpool_append_length(size_t length) { return SWAP64(length); }

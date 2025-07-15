@@ -1,64 +1,63 @@
 #pragma once
 #include "ft_ssl.h"
 
-typedef void (*hash_function)(uint8_t *block, uint8_t *hash);
-typedef void (*hash_seed_function)(uint8_t *hash);
+typedef void (*hash_function)(uint8_t* block, uint8_t* hash);
+typedef void (*hash_seed_function)(uint8_t* hash);
 typedef uint64_t (*append_length_function)(size_t length);
 
-typedef enum
-{
-	HASH_MD5 = 16,
-	HASH_SHA224 = 28,
-	HASH_SHA256 = 32,
-	HASH_SHA384 = 48,
-	HASH_SHA512 = 64,
-	HASH_SHA512_224 = 28,
-	HASH_SHA512_256 = 32,
-	HASH_WHIRLPOOL = 64
+typedef enum {
+    HASH_MD5        = 16,
+    HASH_SHA224     = 28,
+    HASH_SHA256     = 32,
+    HASH_SHA384     = 48,
+    HASH_SHA512     = 64,
+    HASH_SHA512_224 = 28,
+    HASH_SHA512_256 = 32,
+    HASH_WHIRLPOOL  = 64
 } hash_size;
 
 typedef struct hash_map_s
 {
-	const char *name;
-	hash_function function;
-	size_t word_size;
-	size_t block_size;
-	size_t length_field_size;
-	append_length_function append_length;
-	hash_seed_function hash_seed;
-	uint8_t hash[64];
-	hash_size hash_size;
-	int hash_mask;
-	bool big_endian;
-	int fd;
-	size_t length;
-	size_t bytes_read;
-	size_t i;
+    const char*            name;
+    hash_function          function;
+    size_t                 word_size;
+    size_t                 block_size;
+    size_t                 length_field_size;
+    append_length_function append_length;
+    hash_seed_function     hash_seed;
+    uint8_t                hash[64];
+    hash_size              hash_size;
+    int                    hash_mask;
+    bool                   big_endian;
+    int                    fd;
+    size_t                 length;
+    size_t                 bytes_read;
+    size_t                 i;
 } hash_map;
 
 #define SWAP64(x) (                                               \
-	(((x) >> 56) & 0xFF) | (((x) << 56) & 0xFF00000000000000UL) | \
-	(((x) >> 40) & 0xFF00) | (((x) << 40) & 0xFF000000000000UL) | \
-	(((x) >> 24) & 0xFF0000) | (((x) << 24) & 0xFF0000000000UL) | \
-	(((x) >> 8) & 0xFF000000) | (((x) << 8) & 0xFF00000000UL))
+    (((x) >> 56) & 0xFF) | (((x) << 56) & 0xFF00000000000000UL) | \
+    (((x) >> 40) & 0xFF00) | (((x) << 40) & 0xFF000000000000UL) | \
+    (((x) >> 24) & 0xFF0000) | (((x) << 24) & 0xFF0000000000UL) | \
+    (((x) >> 8) & 0xFF000000) | (((x) << 8) & 0xFF00000000UL))
 
 #define ROTATE_LEFT(x, n) ((x << n) | (x >> (32 - n)))
 #define ROTATE_RIGHT(x, n) ((x >> n) | (x << (32 - n)))
 #define ROTATE_LEFT_64(x, n) ((x << n) | (x >> (64 - n)))
 #define ROTATE_RIGHT_64(x, n) ((x >> n) | (x << (64 - n)))
 
-int message_digest(char *input, char *argv[]);
-void write_hash(uint8_t *hash, hash_size size, int x);
+int  message_digest(char* input, char* argv[]);
+void write_hash(uint8_t* hash, hash_size size, int x);
 
 /*\\\            /\\\\   /\\\\\\\\\\\\      /\\\\\\\\\\\\\\\
 \/\\\\\\        /\\\\\\  \/\\\////////\\\   \/\\\///////////
  \/\\\//\\\    /\\\//\\\  \/\\\      \//\\\  \/\\\
   \/\\\\///\\\/\\\/ \/\\\  \/\\\       \/\\\  \/\\\\\\\\\\\\
    \/\\\  \///\\\/   \/\\\  \/\\\       \/\\\  \////////////\\\
-	\/\\\    \///     \/\\\  \/\\\       \/\\\             \//\\\
-	 \/\\\             \/\\\  \/\\\       /\\\   /\\\        \/\\\
-	  \/\\\             \/\\\  \/\\\\\\\\\\\\/   \//\\\\\\\\\\\\\/
-	   \///              \///   \////////////      \///////////*/
+    \/\\\    \///     \/\\\  \/\\\       \/\\\             \//\\\
+     \/\\\             \/\\\  \/\\\       /\\\   /\\\        \/\\\
+      \/\\\             \/\\\  \/\\\\\\\\\\\\/   \//\\\\\\\\\\\\\/
+       \///              \///   \////////////      \///////////*/
 
 #define MD5_WORDS_NUMBER 16
 #define MD5_WORD_SIZE sizeof(uint32_t)
@@ -76,57 +75,56 @@ void write_hash(uint8_t *hash, hash_size size, int x);
 #define I(x, y, z) (y ^ (x | ~z))
 
 #define FF(a, b, c, d, x, s, ac)  \
-	{                             \
-		a += F(b, c, d) + x + ac; \
-		a = ROTATE_LEFT(a, s);    \
-		a += b;                   \
-	}
+    {                             \
+        a += F(b, c, d) + x + ac; \
+        a = ROTATE_LEFT(a, s);    \
+        a += b;                   \
+    }
 
 #define GG(a, b, c, d, x, s, ac)  \
-	{                             \
-		a += G(b, c, d) + x + ac; \
-		a = ROTATE_LEFT(a, s);    \
-		a += b;                   \
-	}
+    {                             \
+        a += G(b, c, d) + x + ac; \
+        a = ROTATE_LEFT(a, s);    \
+        a += b;                   \
+    }
 
 #define HH(a, b, c, d, x, s, ac)  \
-	{                             \
-		a += H(b, c, d) + x + ac; \
-		a = ROTATE_LEFT(a, s);    \
-		a += b;                   \
-	}
+    {                             \
+        a += H(b, c, d) + x + ac; \
+        a = ROTATE_LEFT(a, s);    \
+        a += b;                   \
+    }
 
 #define II(a, b, c, d, x, s, ac)  \
-	{                             \
-		a += I(b, c, d) + x + ac; \
-		a = ROTATE_LEFT(a, s);    \
-		a += b;                   \
-	}
+    {                             \
+        a += I(b, c, d) + x + ac; \
+        a = ROTATE_LEFT(a, s);    \
+        a += b;                   \
+    }
 
-void md5(uint8_t *block, uint8_t *hash);
-void md5_hash(uint8_t *hash);
+void     md5(uint8_t* block, uint8_t* hash);
+void     md5_hash(uint8_t* hash);
 uint64_t md5_append_length(size_t length);
 
-/*
- /\\\\\\\\\\\     /\\\        /\\\      /\\\\\\\\\
+ /*\\\\\\\\\\     /\\\        /\\\      /\\\\\\\\\
 /\\\/////////\\\  \/\\\       \/\\\    /\\\\\\\\\\\\\
 \//\\\      \///   \/\\\       \/\\\   /\\\/////////\\\
  \////\\\           \/\\\\\\\\\\\\\\\  \/\\\       \/\\\
-	 \////\\\        \/\\\/////////\\\  \/\\\\\\\\\\\\\\\
-		 \////\\\     \/\\\       \/\\\  \/\\\/////////\\\
+     \////\\\        \/\\\/////////\\\  \/\\\\\\\\\\\\\\\
+         \////\\\     \/\\\       \/\\\  \/\\\/////////\\\
    /\\\      \//\\\    \/\\\       \/\\\  \/\\\       \/\\\
    \///\\\\\\\\\\\/     \/\\\       \/\\\  \/\\\       \/\\\
-	  \///////////       \///        \///   \///        \///
+      \///////////       \///        \///   \///        \///
 
-		  /\\\\\\\\\        /\\\\\\\\\\\\\\\             /\\\\\
-		 /\\\///////\\\     \/\\\///////////          /\\\\////
-		 \///      \//\\\    \/\\\                  /\\\///
-					/\\\/     \/\\\\\\\\\\\\       /\\\\\\\\\\\
-				  /\\\//       \////////////\\\    /\\\\///////\\\
-				/\\\//                     \//\\\  \/\\\      \//\\\
-			   /\\\/             /\\\        \/\\\  \//\\\      /\\\
-			   /\\\\\\\\\\\\\\\  \//\\\\\\\\\\\\\/    \///\\\\\\\\\/
-			   \///////////////    \/////////////        \///////*/
+          /\\\\\\\\\        /\\\\\\\\\\\\\\\             /\\\\\
+         /\\\///////\\\     \/\\\///////////          /\\\\////
+         \///      \//\\\    \/\\\                  /\\\///
+                    /\\\/     \/\\\\\\\\\\\\       /\\\\\\\\\\\
+                  /\\\//       \////////////\\\    /\\\\///////\\\
+                /\\\//                     \//\\\  \/\\\      \//\\\
+               /\\\/             /\\\        \/\\\  \//\\\      /\\\
+               /\\\\\\\\\\\\\\\  \//\\\\\\\\\\\\\/    \///\\\\\\\\\/
+               \///////////////    \/////////////        \///////*/
 
 #define SHA_256_WORDS_NUMBER 16
 #define SHA_256_WORD_SIZE sizeof(uint32_t)
@@ -159,32 +157,31 @@ uint64_t md5_append_length(size_t length);
 #define SSIG0(x) (ROTATE_RIGHT(x, 7) ^ ROTATE_RIGHT(x, 18) ^ (x >> 3))
 #define SSIG1(x) (ROTATE_RIGHT(x, 17) ^ ROTATE_RIGHT(x, 19) ^ (x >> 10))
 
-void sha224(uint8_t *block, uint8_t *hash);
-void sha256(uint8_t *block, uint8_t *hash);
-void sha256_hash(uint8_t *hash);
-void sha224_hash(uint8_t *hash);
+void     sha224(uint8_t* block, uint8_t* hash);
+void     sha256(uint8_t* block, uint8_t* hash);
+void     sha256_hash(uint8_t* hash);
+void     sha224_hash(uint8_t* hash);
 uint64_t sha256_append_length(size_t length);
 
-/*
- /\\\\\\\\\\\     /\\\        /\\\      /\\\\\\\\\
+ /*\\\\\\\\\\     /\\\        /\\\      /\\\\\\\\\
 /\\\/////////\\\  \/\\\       \/\\\    /\\\\\\\\\\\\\
 \//\\\      \///   \/\\\       \/\\\   /\\\/////////\\\
  \////\\\           \/\\\\\\\\\\\\\\\  \/\\\       \/\\\
-	 \////\\\        \/\\\/////////\\\  \/\\\\\\\\\\\\\\\
-		 \////\\\     \/\\\       \/\\\  \/\\\/////////\\\
+     \////\\\        \/\\\/////////\\\  \/\\\\\\\\\\\\\\\
+         \////\\\     \/\\\       \/\\\  \/\\\/////////\\\
    /\\\      \//\\\    \/\\\       \/\\\  \/\\\       \/\\\
    \///\\\\\\\\\\\/     \/\\\       \/\\\  \/\\\       \/\\\
-	  \///////////       \///        \///   \///        \///
+      \///////////       \///        \///   \///        \///
 
-	   /\\\\\\\\\\\\\\\        /\\\     /\\\\\\\\\
-	   \/\\\///////////     /\\\\\\\   /\\\///////\\\
-		\/\\\               \/////\\\  \///      \//\\\
-		 \/\\\\\\\\\\\\          \/\\\            /\\\/
-		  \////////////\\\        \/\\\         /\\\//
-					  \//\\\       \/\\\      /\\\//
-			/\\\        \/\\\       \/\\\    /\\\/
-			\//\\\\\\\\\\\\\/        \/\\\   /\\\\\\\\\\\\\\\
-			  \/////////////          \///   \/////////////*/
+       /\\\\\\\\\\\\\\\        /\\\     /\\\\\\\\\
+       \/\\\///////////     /\\\\\\\   /\\\///////\\\
+        \/\\\               \/////\\\  \///      \//\\\
+         \/\\\\\\\\\\\\          \/\\\            /\\\/
+          \////////////\\\        \/\\\         /\\\//
+                      \//\\\       \/\\\      /\\\//
+            /\\\        \/\\\       \/\\\    /\\\/
+            \//\\\\\\\\\\\\\/        \/\\\   /\\\\\\\\\\\\\\\
+              \/////////////          \///   \/////////////*/
 
 #define SHA_512_WORDS_NUMBER 16
 #define SHA_512_WORD_SIZE sizeof(uint64_t)
@@ -232,31 +229,31 @@ uint64_t sha256_append_length(size_t length);
 #define SSIG0_512(x) (ROTATE_RIGHT_64(x, 1) ^ ROTATE_RIGHT_64(x, 8) ^ (x >> 7))
 #define SSIG1_512(x) (ROTATE_RIGHT_64(x, 19) ^ ROTATE_RIGHT_64(x, 61) ^ (x >> 6))
 
-void sha384(uint8_t *block, uint8_t *hash);
-void sha512(uint8_t *block, uint8_t *hash);
-void sha512_224(uint8_t *block, uint8_t *hash);
-void sha512_256(uint8_t *block, uint8_t *hash);
-void sha384_hash(uint8_t *hash);
-void sha512_hash(uint8_t *hash);
-void sha512_224_hash(uint8_t *hash);
-void sha512_256_hash(uint8_t *hash);
+void     sha384(uint8_t* block, uint8_t* hash);
+void     sha512(uint8_t* block, uint8_t* hash);
+void     sha512_224(uint8_t* block, uint8_t* hash);
+void     sha512_256(uint8_t* block, uint8_t* hash);
+void     sha384_hash(uint8_t* hash);
+void     sha512_hash(uint8_t* hash);
+void     sha512_224_hash(uint8_t* hash);
+void     sha512_256_hash(uint8_t* hash);
 uint64_t sha512_append_length(size_t length);
 
 /*\\              /\\\
 \/\\\             \/\\\
  \/\\\             \/\\\
   \//\\\    /\\\    /\\\
-	\//\\\  /\\\\\  /\\\
-	  \//\\\/\\\/\\\/\\\
-		\//\\\\\\//\\\\\
-		  \//\\\  \//\\\
-			\///    \/*/
+    \//\\\  /\\\\\  /\\\
+      \//\\\/\\\/\\\/\\\
+        \//\\\\\\//\\\\\
+          \//\\\  \//\\\
+            \///    \/*/
 
 #define WHIRLPOOL_WORDS_NUMBER 8
 #define WHIRLPOOL_WORD_SIZE sizeof(uint64_t)
 #define WHIRLPOOL_LENGTH_FIELD_SIZE sizeof(__int128_t) * 2
 #define WHIRLPOOL_BLOCK_SIZE (WHIRLPOOL_WORDS_NUMBER * WHIRLPOOL_WORD_SIZE)
 
-void whirlpool(uint8_t *block, uint8_t *hash);
-void whirlpool_hash(uint8_t *hash);
+void     whirlpool(uint8_t* block, uint8_t* hash);
+void     whirlpool_hash(uint8_t* hash);
 uint64_t whirlpool_append_length(size_t length);

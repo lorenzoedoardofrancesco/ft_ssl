@@ -1,0 +1,29 @@
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 160
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterStruct: true
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: true
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+SortIncludes: true
+IndentAccessModifiers: false
+AccessModifierOffset: -4
+
+IndentCaseLabels: true
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignTrailingComments: true
+AlignArrayOfStructures: Left
+Cpp11BracedListStyle: false
+AllowShortBlocksOnASingleLine: false
