@@ -1,5 +1,11 @@
 #include "ft_ssl.h"
 
+#define SWAP64(x) (                                               \
+    (((x) >> 56) & 0xFF) | (((x) << 56) & 0xFF00000000000000UL) | \
+    (((x) >> 40) & 0xFF00) | (((x) << 40) & 0xFF000000000000UL) | \
+    (((x) >> 24) & 0xFF0000) | (((x) << 24) & 0xFF0000000000UL) | \
+    (((x) >> 8) & 0xFF000000) | (((x) << 8) & 0xFF00000000UL))
+
 static const uint8_t s_box[256] =
 {
 	0x18, 0x23, 0xc6, 0xe8, 0x87, 0xb8, 0x01, 0x4f, 0x36, 0xa6, 0xd2, 0xf5, 0x79, 0x6f, 0x91, 0x52,
@@ -49,7 +55,7 @@ void substitute_bytes(uint8_t* matrix)
 void shift_columns(uint8_t* matrix)
 {
     uint8_t temp[64];
-    ft_memcpy(temp, matrix, 64);
+    memcpy(temp, matrix, 64);
 
     for (int i = 0; i < 8; ++i) {
         for (int j = 1; j < 8; ++j) {
@@ -87,7 +93,7 @@ void mix_rows(uint8_t* matrix)
         }
     }
 
-    ft_memcpy(matrix, temp, 64);
+    memcpy(matrix, temp, 64);
 }
 
 void whirlpool_round(uint8_t* matrix, uint8_t* key, size_t size)
@@ -101,8 +107,8 @@ void whirlpool_round(uint8_t* matrix, uint8_t* key, size_t size)
 void whirlpool(uint8_t* block, uint8_t* hash)
 {
     uint8_t matrix[64] = { 0 }, key[64] = { 0 };
-    ft_memcpy(matrix, block, 64);
-    ft_memcpy(key, hash, 64);
+    memcpy(matrix, block, 64);
+    memcpy(key, hash, 64);
 
     add_key(matrix, key, 64);
     for (int i = 0; i < 10; ++i) {

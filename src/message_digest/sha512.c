@@ -1,5 +1,51 @@
 #include "ft_ssl.h"
 
+#define SHA_384_H1 0xcbbb9d5dc1059ed8
+#define SHA_384_H2 0x629a292a367cd507
+#define SHA_384_H3 0x9159015a3070dd17
+#define SHA_384_H4 0x152fecd8f70e5939
+#define SHA_384_H5 0x67332667ffc00b31
+#define SHA_384_H6 0x8eb44a8768581511
+#define SHA_384_H7 0xdb0c2e0d64f98fa7
+#define SHA_384_H8 0x47b5481dbefa4fa4
+
+#define SHA_512_H1 0x6a09e667f3bcc908
+#define SHA_512_H2 0xbb67ae8584caa73b
+#define SHA_512_H3 0x3c6ef372fe94f82b
+#define SHA_512_H4 0xa54ff53a5f1d36f1
+#define SHA_512_H5 0x510e527fade682d1
+#define SHA_512_H6 0x9b05688c2b3e6c1f
+#define SHA_512_H7 0x1f83d9abfb41bd6b
+#define SHA_512_H8 0x5be0cd19137e2179
+
+#define SHA_512_224_H1 0x8c3d37c819544da2
+#define SHA_512_224_H2 0x73e1996689dcd4d6
+#define SHA_512_224_H3 0x1dfab7ae32ff9c82
+#define SHA_512_224_H4 0x679dd514582f9fcf
+#define SHA_512_224_H5 0x0f6d2b697bd44da8
+#define SHA_512_224_H6 0x77e36f7304c48942
+#define SHA_512_224_H7 0x3f9d85a86a1d36c8
+#define SHA_512_224_H8 0x1112e6ad91d692a1
+
+#define SHA_512_256_H1 0x22312194fc2bf72c
+#define SHA_512_256_H2 0x9f555fa3c84c64c2
+#define SHA_512_256_H3 0x2393b86b6f53b151
+#define SHA_512_256_H4 0x963877195940eabd
+#define SHA_512_256_H5 0x96283ee2a88effe3
+#define SHA_512_256_H6 0xbe5e1e2553863992
+#define SHA_512_256_H7 0x2b0199fc2c85b8aa
+#define SHA_512_256_H8 0x0eb72ddc81c52ca2
+
+#define ROTATE_RIGHT(x, n) ((x >> n) | (x << (64 - n)))
+
+#define BSIG0(x) (ROTATE_RIGHT(x, 28) ^ ROTATE_RIGHT(x, 34) ^ ROTATE_RIGHT(x, 39))
+#define BSIG1(x) (ROTATE_RIGHT(x, 14) ^ ROTATE_RIGHT(x, 18) ^ ROTATE_RIGHT(x, 41))
+#define SSIG0(x) (ROTATE_RIGHT(x, 1)  ^ ROTATE_RIGHT(x, 8)  ^ (x >> 7))
+#define SSIG1(x) (ROTATE_RIGHT(x, 19) ^ ROTATE_RIGHT(x, 61) ^ (x >> 6))
+
+#define CH(x, y, z)  ((x & y) ^ (~x & z))
+#define MAJ(x, y, z) ((x & y) ^  (x & z) ^ (y & z))
+
 static const uint64_t k[80] =
 {
     0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc,
@@ -35,11 +81,11 @@ void sha512(uint8_t* block_uint8, uint8_t* hash_uint8)
     uint64_t w[80];
 
     for (int i = 0;  i < 16; ++i) w[i] = block[i];
-    for (int i = 16; i < 80; ++i) w[i] = SSIG1_512(w[i - 2]) + w[i - 7] + SSIG0_512(w[i - 15]) + w[i - 16];
+    for (int i = 16; i < 80; ++i) w[i] = SSIG1(w[i - 2]) + w[i - 7] + SSIG0(w[i - 15]) + w[i - 16];
 
     for (int i = 0; i < 80; ++i) {
-        uint64_t t1 = *h + BSIG1_512(*e) + CH(*e, *f, *g) + k[i] + w[i];
-        uint64_t t2 = BSIG0_512(*a) + MAJ(*a, *b, *c);
+        uint64_t t1 = *h + BSIG1(*e) + CH(*e, *f, *g) + k[i] + w[i];
+        uint64_t t2 = BSIG0(*a) + MAJ(*a, *b, *c);
         *h = *g, *g = *f, *f = *e, *e = *d + t1, *d = *c, *c = *b, *b = *a, *a = t1 + t2;
     }
 
@@ -48,26 +94,26 @@ void sha512(uint8_t* block_uint8, uint8_t* hash_uint8)
 
 void sha384_hash(uint8_t* hash)
 {
-    uint64_t hash_seed[8] = { SHA_384_H1, SHA_384_H2, SHA_384_H3, SHA_384_H4, SHA_384_H5, SHA_384_H6, SHA_384_H7, SHA_384_H8 };
-    ft_memcpy(hash, hash_seed, sizeof(hash_seed));
+    uint64_t seed[8] = { SHA_384_H1, SHA_384_H2, SHA_384_H3, SHA_384_H4, SHA_384_H5, SHA_384_H6, SHA_384_H7, SHA_384_H8 };
+    memcpy(hash, seed, sizeof(seed));
 }
 
 void sha512_hash(uint8_t* hash)
 {
-    uint64_t hash_seed[8] = { SHA_512_H1, SHA_512_H2, SHA_512_H3, SHA_512_H4, SHA_512_H5, SHA_512_H6, SHA_512_H7, SHA_512_H8 };
-    ft_memcpy(hash, hash_seed, sizeof(hash_seed));
+    uint64_t seed[8] = { SHA_512_H1, SHA_512_H2, SHA_512_H3, SHA_512_H4, SHA_512_H5, SHA_512_H6, SHA_512_H7, SHA_512_H8 };
+    memcpy(hash, seed, sizeof(seed));
 }
 
 void sha512_224_hash(uint8_t* hash)
 {
-    uint64_t hash_seed[8] = { SHA_512_224_H1, SHA_512_224_H2, SHA_512_224_H3, SHA_512_224_H4, SHA_512_224_H5, SHA_512_224_H6, SHA_512_224_H7, SHA_512_224_H8 };
-    ft_memcpy(hash, hash_seed, sizeof(hash_seed));
+    uint64_t seed[8] = { SHA_512_224_H1, SHA_512_224_H2, SHA_512_224_H3, SHA_512_224_H4, SHA_512_224_H5, SHA_512_224_H6, SHA_512_224_H7, SHA_512_224_H8 };
+    memcpy(hash, seed, sizeof(seed));
 }
 
 void sha512_256_hash(uint8_t* hash)
 {
-    uint64_t hash_seed[8] = { SHA_512_256_H1, SHA_512_256_H2, SHA_512_256_H3, SHA_512_256_H4, SHA_512_256_H5, SHA_512_256_H6, SHA_512_256_H7, SHA_512_256_H8 };
-    ft_memcpy(hash, hash_seed, sizeof(hash_seed));
+    uint64_t seed[8] = { SHA_512_256_H1, SHA_512_256_H2, SHA_512_256_H3, SHA_512_256_H4, SHA_512_256_H5, SHA_512_256_H6, SHA_512_256_H7, SHA_512_256_H8 };
+    memcpy(hash, seed, sizeof(seed));
 }
 
 uint64_t sha512_append_length(size_t length) { return length; }

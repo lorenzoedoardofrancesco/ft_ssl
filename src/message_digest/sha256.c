@@ -1,5 +1,33 @@
 #include "ft_ssl.h"
 
+#define SHA_224_H1 0xc1059ed8
+#define SHA_224_H2 0x367cd507
+#define SHA_224_H3 0x3070dd17
+#define SHA_224_H4 0xf70e5939
+#define SHA_224_H5 0xffc00b31
+#define SHA_224_H6 0x68581511
+#define SHA_224_H7 0x64f98fa7
+#define SHA_224_H8 0xbefa4fa4
+
+#define SHA_256_H1 0x6a09e667
+#define SHA_256_H2 0xbb67ae85
+#define SHA_256_H3 0x3c6ef372
+#define SHA_256_H4 0xa54ff53a
+#define SHA_256_H5 0x510e527f
+#define SHA_256_H6 0x9b05688c
+#define SHA_256_H7 0x1f83d9ab
+#define SHA_256_H8 0x5be0cd19
+
+#define ROTATE_RIGHT(x, n) ((x >> n) | (x << (32 - n)))
+
+#define BSIG0(x) (ROTATE_RIGHT(x, 2)  ^ ROTATE_RIGHT(x, 13) ^ ROTATE_RIGHT(x, 22))
+#define BSIG1(x) (ROTATE_RIGHT(x, 6)  ^ ROTATE_RIGHT(x, 11) ^ ROTATE_RIGHT(x, 25))
+#define SSIG0(x) (ROTATE_RIGHT(x, 7)  ^ ROTATE_RIGHT(x, 18) ^ (x >> 3))
+#define SSIG1(x) (ROTATE_RIGHT(x, 17) ^ ROTATE_RIGHT(x, 19) ^ (x >> 10))
+
+#define CH(x, y, z)  ((x & y) ^ (~x & z))
+#define MAJ(x, y, z) ((x & y) ^  (x & z) ^ (y & z))
+
 static const uint32_t k[64] =
 {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -42,16 +70,16 @@ void sha256(uint8_t* block_uint8, uint8_t* hash_uint8)
     *a += h1, *b += h2, *c += h3, *d += h4, *e += h5, *f += h6, *g += h7, *h += h8;
 }
 
-void sha256_hash(uint8_t* hash)
-{
-    uint32_t hash_seed[8] = { SHA_256_H1, SHA_256_H2, SHA_256_H3, SHA_256_H4, SHA_256_H5, SHA_256_H6, SHA_256_H7, SHA_256_H8 };
-    ft_memcpy(hash, hash_seed, sizeof(hash_seed));
-}
-
 void sha224_hash(uint8_t* hash)
 {
-    uint32_t hash_seed[8] = { SHA_224_H1, SHA_224_H2, SHA_224_H3, SHA_224_H4, SHA_224_H5, SHA_224_H6, SHA_224_H7, SHA_224_H8 };
-    ft_memcpy(hash, hash_seed, sizeof(hash_seed));
+    uint32_t seed[8] = { SHA_224_H1, SHA_224_H2, SHA_224_H3, SHA_224_H4, SHA_224_H5, SHA_224_H6, SHA_224_H7, SHA_224_H8 };
+    memcpy(hash, seed, sizeof(seed));
+}
+
+void sha256_hash(uint8_t* hash)
+{
+    uint32_t seed[8] = { SHA_256_H1, SHA_256_H2, SHA_256_H3, SHA_256_H4, SHA_256_H5, SHA_256_H6, SHA_256_H7, SHA_256_H8 };
+    memcpy(hash, seed, sizeof(seed));
 }
 
 uint64_t sha256_append_length(size_t length)

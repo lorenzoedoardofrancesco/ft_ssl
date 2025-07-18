@@ -1,5 +1,7 @@
 #include "ft_ssl.h"
 
+#define HEX_CHARS "0123456789abcdef"
+
 hash_map hash_functions[] =
 {
 	{"md5", md5, MD5_WORD_SIZE, MD5_BLOCK_SIZE, MD5_LENGTH_FIELD_SIZE, md5_append_length, md5_hash, {0}, HASH_MD5, 0, false, 0, 0, 1, 0},
@@ -110,5 +112,4 @@ void write_hash(uint8_t* hash, hash_size size, int x)
 {
     for (int i = 0; i < (int)size; ++i) write_hex_byte(hash[i ^ x]);
     write(1, "\n", 1);
-    // write(1, "  - \n", 5);
 }

@@ -1,5 +1,54 @@
 #include "ft_ssl.h"
 
+#define A 0x67452301
+#define B 0xefcdab89
+#define C 0x98badcfe
+#define D 0x10325476
+
+#define F(x, y, z) ((x & y) | (~x & z))
+#define G(x, y, z) ((x & z) | (y & ~z))
+#define H(x, y, z) (x ^ y ^ z)
+#define I(x, y, z) (y ^ (x | ~z))
+
+#define ROTATE_LEFT(x, n) ((x << n) | (x >> (32 - n)))
+
+#define ROTATE_RIGHT_H(h)   \
+    do {                    \
+        uint32_t* t = h[3]; \
+        h[3]        = h[2]; \
+        h[2]        = h[1]; \
+        h[1]        = h[0]; \
+        h[0]        = t;    \
+    } while (0)
+
+#define FF(a, b, c, d, x, s, ac)  \
+    {                             \
+        a += F(b, c, d) + x + ac; \
+        a = ROTATE_LEFT(a, s);    \
+        a += b;                   \
+    }
+
+#define GG(a, b, c, d, x, s, ac)  \
+    {                             \
+        a += G(b, c, d) + x + ac; \
+        a = ROTATE_LEFT(a, s);    \
+        a += b;                   \
+    }
+
+#define HH(a, b, c, d, x, s, ac)  \
+    {                             \
+        a += H(b, c, d) + x + ac; \
+        a = ROTATE_LEFT(a, s);    \
+        a += b;                   \
+    }
+
+#define II(a, b, c, d, x, s, ac)  \
+    {                             \
+        a += I(b, c, d) + x + ac; \
+        a = ROTATE_LEFT(a, s);    \
+        a += b;                   \
+    }
+
 static const uint32_t k[64] =
 {
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
@@ -28,14 +77,6 @@ static const uint8_t r[16] =
     6, 10, 15, 21
 };
 
-void rotate_right(uint32_t** hash)
-{
-    uint32_t* tmp = hash[3];
-    hash[3]       = hash[2];
-    hash[2]       = hash[1];
-    hash[1]       = hash[0];
-    hash[0]       = tmp;
-}
 
 void md5(uint8_t* block_uint8, uint8_t* hash_uint8)
 {
@@ -49,19 +90,19 @@ void md5(uint8_t* block_uint8, uint8_t* hash_uint8)
 
     for (int i = 0; i < 16; ++i) {
         FF(*hash[0], *hash[1], *hash[2], *hash[3], block[i], r[i % 4], k[i]);
-        rotate_right(hash);
+        ROTATE_RIGHT_H(hash);
     }
     for (int i = 16; i < 32; ++i) {
         GG(*hash[0], *hash[1], *hash[2], *hash[3], block[(5 * i + 1) % 16], r[i % 4 + 4], k[i]);
-        rotate_right(hash);
+        ROTATE_RIGHT_H(hash);
     }
     for (int i = 32; i < 48; ++i) {
         HH(*hash[0], *hash[1], *hash[2], *hash[3], block[(3 * i + 5) % 16], r[i % 4 + 8], k[i]);
-        rotate_right(hash);
+        ROTATE_RIGHT_H(hash);
     }
     for (int i = 48; i < 64; ++i) {
         II(*hash[0], *hash[1], *hash[2], *hash[3], block[(7 * i) % 16], r[i % 4 + 12], k[i]);
-        rotate_right(hash);
+        ROTATE_RIGHT_H(hash);
     }
 
     *hash[0] += a, *hash[1] += b, *hash[2] += c, *hash[3] += d;
@@ -70,7 +111,7 @@ void md5(uint8_t* block_uint8, uint8_t* hash_uint8)
 void md5_hash(uint8_t* hash)
 {
     uint32_t hash_seed[4] = { A, B, C, D };
-    ft_memcpy(hash, hash_seed, sizeof(hash_seed));
+    memcpy(hash, hash_seed, sizeof(hash_seed));
 }
 
 uint64_t md5_append_length(size_t length) { return length; }

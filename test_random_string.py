@@ -6,7 +6,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description="Compare ft_ssl and OpenSSL hashing performance")
 parser.add_argument('-n', '--tests', type=int, default=100, help='Number of tests to run (default: 100)')
-parser.add_argument('--minlen', type=int, default=64, help='Minimum random string length (default: 64)')
+parser.add_argument('--minlen', type=int, default=100000, help='Minimum random string length (default: 64)')
 parser.add_argument('--maxlen', type=int, default=100000, help='Maximum random string length (default: 100000)')
 args = parser.parse_args()
 

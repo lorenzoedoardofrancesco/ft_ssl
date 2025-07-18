@@ -9,25 +9,15 @@ command_map commands[] = {
     { "sha512-224", message_digest },
     { "sha512-256", message_digest },
     { "whirlpool",  message_digest },
-    { "base64",     base64         },
     { NULL,         NULL           }
 };
 
-int print_error(const char* message)
-{
-    write(STDERR_FILENO, message, ft_strlen(message));
-    return EXIT_FAILURE;
-}
-
-int print_help(const char* message)
-{
-    write(STDOUT_FILENO, message, ft_strlen(message));
-    return EXIT_SUCCESS;
-}
-
 int main(int argc, char* argv[])
 {
-    if (argc < 2) return print_help(HELP_MESSAGE);
+    if (argc < 2) {
+        print(HELP_MESSAGE);
+        return EXIT_SUCCESS;
+    }
 
     for (int i = 0; commands[i].command != NULL; i++) {
         if (strcmp(argv[1], commands[i].command) == 0) {
