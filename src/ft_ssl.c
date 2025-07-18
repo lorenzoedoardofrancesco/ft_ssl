@@ -14,7 +14,7 @@ command_map commands[] = {
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2) {
+    if (argc < 2 || strcmp(argv[1], "help") == 0) {
         print(HELP_MESSAGE);
         return EXIT_SUCCESS;
     }
@@ -25,6 +25,8 @@ int main(int argc, char* argv[])
         }
     }
 
-    fprintf(stderr, "ft_ssl: Invalid command '%s'; type \"help\" for a list.\n", argv[1]);
+    print_error("ft_ssl: Invalid command '");
+    print_error(argv[1]);
+    print_error("'; type \"help\" for a list.\n");
     return EXIT_FAILURE;
 }

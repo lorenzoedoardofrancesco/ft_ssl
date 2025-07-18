@@ -1,10 +1,6 @@
 #pragma once
 #include "ft_ssl.h"
 
-typedef void (*hash_fn)(uint8_t* block, uint8_t* hash);
-typedef void (*seed_fn)(uint8_t* hash);
-typedef uint64_t (*append_len_fn)(size_t length);
-
 typedef enum {
     MD5_HASH_SIZE        = 16,
     SHA224_HASH_SIZE     = 28,
@@ -16,23 +12,31 @@ typedef enum {
     WHIRLPOOL_HASH_SIZE  = 64
 } hash_size;
 
+typedef void (*hash_fn)(uint8_t* block, uint8_t* hash);
+typedef void (*seed_fn)(uint8_t* hash);
+typedef uint64_t (*append_len_fn)(size_t length);
+
 typedef struct hash_map_s
 {
-    const char*   name;
-    hash_fn       function;
-    size_t        word_size;
-    size_t        block_size;
-    size_t        length_field_size;
-    append_len_fn append_length;
-    seed_fn       hash_seed;
-    uint8_t       hash[64];
-    hash_size     hash_size;
-    int           hash_mask;
-    bool          big_endian;
-    int           fd;
-    size_t        length;
-    size_t        bytes_read;
-    size_t        i;
+    const char*   algorithm_name;      // Name of the hash algorithm (e.g., "SHA-256")
+
+    hash_size     output_size;         // Size of the final hash output (in bytes)
+    size_t        word_size_bytes;     // Size of the internal word used by the algorithm (in bytes)
+    size_t        block_size_bytes;    // Size of each data block processed (in bytes)
+    size_t        length_field_bytes;  // Size of the length field appended during padding (in bytes)
+    
+    hash_fn       compute_hash_fn;     // Function pointer to the main hash computation function
+    seed_fn       init_seed_fn;        // Function pointer to the seed initialization function
+    append_len_fn append_length_fn;    // Function pointer to function that appends length during finalization
+
+    int           hash_bitmask;        // Bitmask applied during certain hash operations (e.g., masking hash bits)
+    bool          is_big_endian;       // Endianness flag — true if big-endian, false if little-endian
+
+    uint8_t       digest[64];          // Buffer to store the resulting hash (digest)
+    int           input_fd;            // File descriptor for the input data source (e.g., open file or stdin)
+    size_t        total_length;        // Total length of the input data (in bytes)
+    size_t        bytes_processed;     // Number of bytes processed so far
+    size_t        buffer_index;        // Current index within the internal buffer for processing
 } hash_map;
 
 int  message_digest(char* input, char* argv[]);
