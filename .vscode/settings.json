@@ -2,6 +2,8 @@
     "files.associations": {
         "string.h": "c",
         "cstdlib": "c",
-        "ft_ssl.h": "c"
+        "ft_ssl.h": "c",
+        "typeinfo": "c",
+        "bit": "c"
     }
 }
