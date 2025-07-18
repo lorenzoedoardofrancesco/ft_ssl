@@ -70,13 +70,13 @@ void sha256(uint8_t* block_uint8, uint8_t* hash_uint8)
     *a += h1, *b += h2, *c += h3, *d += h4, *e += h5, *f += h6, *g += h7, *h += h8;
 }
 
-void sha224_hash(uint8_t* hash)
+void sha224_seed(uint8_t* hash)
 {
     uint32_t seed[8] = { SHA_224_H1, SHA_224_H2, SHA_224_H3, SHA_224_H4, SHA_224_H5, SHA_224_H6, SHA_224_H7, SHA_224_H8 };
     memcpy(hash, seed, sizeof(seed));
 }
 
-void sha256_hash(uint8_t* hash)
+void sha256_seed(uint8_t* hash)
 {
     uint32_t seed[8] = { SHA_256_H1, SHA_256_H2, SHA_256_H3, SHA_256_H4, SHA_256_H5, SHA_256_H6, SHA_256_H7, SHA_256_H8 };
     memcpy(hash, seed, sizeof(seed));

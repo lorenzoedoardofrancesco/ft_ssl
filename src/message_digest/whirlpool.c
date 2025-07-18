@@ -120,7 +120,7 @@ void whirlpool(uint8_t* block, uint8_t* hash)
     add_key(hash, matrix, 64);
 }
 
-void whirlpool_hash(uint8_t* hash)
+void whirlpool_seed(uint8_t* hash)
 {
     (void)hash;
     return;

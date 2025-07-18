@@ -23,7 +23,6 @@ typedef struct
     int (*function)(char*, char**);
 } command_map;
 
-
 // utils.c
 void print(const char* message);
 void error(int ret);
