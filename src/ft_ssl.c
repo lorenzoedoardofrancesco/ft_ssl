@@ -25,8 +25,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    print_error("ft_ssl: Invalid command '");
-    print_error(argv[1]);
-    print_error("'; type \"help\" for a list.\n");
+    print_error("Invalid command '%s'; type \"help\" for a list.\n", argv[1]);
     return EXIT_FAILURE;
 }

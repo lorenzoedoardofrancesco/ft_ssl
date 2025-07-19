@@ -33,7 +33,7 @@ static int open_input(char* file_name)
 
     int fd = open(file_name, O_RDONLY);
     if (fd == -1) {
-        fprintf(stderr, "Can't open file: %s\n", file_name);
+        print_error("%s: %s\n", file_name, strerror(errno));
     }
     return fd;
 }
@@ -91,10 +91,6 @@ static void print_hash(uint8_t* hash, hash_size size, int x)
 int message_digest(char* hash_name, char* argv[])
 {
     hash_map* H = find_algorithm(hash_name);
-    if (H == NULL) {
-        fprintf(stderr, "Unknown hash function: %s\n", hash_name);
-        return EXIT_FAILURE;
-    }
 
     H->input_fd = open_input(argv[0]);
     if (H->input_fd < 0) {

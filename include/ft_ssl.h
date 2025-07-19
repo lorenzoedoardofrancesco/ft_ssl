@@ -25,5 +25,5 @@ typedef struct
 
 // utils.c
 void print(const char* message);
-void print_error(const char* message);
+void print_error(const char* fmt, ...);
 void error(int ret);
