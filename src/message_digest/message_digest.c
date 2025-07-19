@@ -1,7 +1,7 @@
 #include "ft_ssl.h"
 
 #define HASH_ENTRY(name, hsize, wsize, bsize, lsize, hash_fn, seed_fn, append_len_fn, mask, be) \
-    { name, hsize, wsize, bsize, lsize, hash_fn, seed_fn, append_len_fn, mask, be, {0}, 0, 0, 1, 0 }
+    { name, hsize, wsize, bsize, lsize, hash_fn, seed_fn, append_len_fn, mask, be, { 0 }, 0, 0, 1, 0 }
 
 static hash_map algorithms[] = {
     HASH_ENTRY("md5",        MD5_HASH_SIZE,        MD5_WORD_SIZE,       MD5_BLOCK_SIZE,       MD5_LENGTH_FIELD_SIZE,       md5,       md5_seed,        md5_append_length,       0,                    false),
@@ -78,11 +78,11 @@ static void print_hash(uint8_t* hash, hash_size size, int x)
 {
     static const char hex_chars[] = "0123456789abcdef";
 
-    char hex[2];
+    char hex[3] = {0˛, 0, '\0'};\
     for (int i = 0; i < (int)size; ++i) {
         uint8_t byte = hash[i ^ x];
-        hex[0] = hex_chars[(byte >> 4) & 0x0F];
-        hex[1] = hex_chars[byte & 0x0F];
+        hex[0]       = hex_chars[(byte >> 4) & 0x0F];
+        hex[1]       = hex_chars[byte & 0x0F];
         print(hex);
     }
     print("\n");
@@ -92,7 +92,31 @@ int message_digest(char* hash_name, char* argv[])
 {
     hash_map* H = find_algorithm(hash_name);
 
-    H->input_fd = open_input(argv[0]);
+    int  i          = 0;
+    bool echo_stdin = false, quiet_mode = false, reverse_output = false;
+    while (argv[i] && argv[i][0] == '-') {
+        if (strcmp(argv[i], "-p") == 0) {
+            echo_stdin = true;
+        } else if (strcmp(argv[i], "-q") == 0) {
+            quiet_mode = true;
+        } else if (strcmp(argv[i], "-r") == 0) {
+            reverse_output = true;
+        } else if (strcmp(argv[i], "-s") == 0) {
+            if (argv[i + 1]) {
+                argv[i] = argv[i + 1];
+                ++i;
+            } else {
+                print_error("Option -s needs a value\n");
+                return EXIT_FAILURE;
+            }
+        } else {
+            print_error("Unknown option or message digest: %s\n", argv[i]);
+            return EXIT_FAILURE;
+        }
+        ++i;
+    }
+
+    H->input_fd = open_input(argv[i]);
     if (H->input_fd < 0) {
         return EXIT_FAILURE;
     }

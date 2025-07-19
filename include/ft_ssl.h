@@ -20,10 +20,10 @@
 typedef struct
 {
     char* command;
-    int (*function)(char*, char**);
+    int (*function)(int, char*[]);
 } command_map;
 
 // utils.c
-void print(const char* message);
+void print(const char* fmt, ...);
 void print_error(const char* fmt, ...);
 void error(int ret);

@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 
     for (int i = 0; commands[i].command != NULL; i++) {
         if (strcmp(argv[1], commands[i].command) == 0) {
-            return commands[i].function(argv[1], argv + 2);
+            return commands[i].function(argc - 1, argv + 1);
         }
     }
 
