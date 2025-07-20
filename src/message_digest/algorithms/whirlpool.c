@@ -55,7 +55,9 @@ void substitute_bytes(uint8_t* matrix)
 void shift_columns(uint8_t* matrix)
 {
     uint8_t temp[64];
-    memcpy(temp, matrix, 64);
+    for (int i = 0; i < 64; ++i) {
+        temp[i] = matrix[i];
+    }
 
     for (int i = 0; i < 8; ++i) {
         for (int j = 1; j < 8; ++j) {
@@ -93,7 +95,9 @@ void mix_rows(uint8_t* matrix)
         }
     }
 
-    memcpy(matrix, temp, 64);
+    for (int i = 0; i < 64; ++i) {
+        matrix[i] = temp[i];
+    }
 }
 
 void whirlpool_round(uint8_t* matrix, uint8_t* key, size_t size)
@@ -107,12 +111,14 @@ void whirlpool_round(uint8_t* matrix, uint8_t* key, size_t size)
 void whirlpool(uint8_t* block, uint8_t* hash)
 {
     uint8_t matrix[64] = { 0 }, key[64] = { 0 };
-    memcpy(matrix, block, 64);
-    memcpy(key, hash, 64);
+    for (int i = 0; i < 64; ++i) {
+        matrix[i] = block[i];
+        key[i]    = hash[i];
+    }
 
     add_key(matrix, key, 64);
     for (int i = 0; i < 10; ++i) {
-        whirlpool_round(key, (uint8_t*)s_box + 8 * i, 8);  // ???
+        whirlpool_round(key, (uint8_t*)s_box + 8 * i, 8);
         whirlpool_round(matrix, key, 64);
     }
 

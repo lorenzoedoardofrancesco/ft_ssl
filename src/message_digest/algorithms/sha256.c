@@ -72,14 +72,14 @@ void sha256(uint8_t* block_uint8, uint8_t* hash_uint8)
 
 void sha224_seed(uint8_t* hash)
 {
-    uint32_t seed[8] = { SHA_224_H1, SHA_224_H2, SHA_224_H3, SHA_224_H4, SHA_224_H5, SHA_224_H6, SHA_224_H7, SHA_224_H8 };
-    memcpy(hash, seed, sizeof(seed));
+    uint32_t* h = (uint32_t*)hash;
+    h[0] = SHA_224_H1, h[1] = SHA_224_H2, h[2] = SHA_224_H3, h[3] = SHA_224_H4, h[4] = SHA_224_H5, h[5] = SHA_224_H6, h[6] = SHA_224_H7, h[7] = SHA_224_H8;
 }
 
 void sha256_seed(uint8_t* hash)
 {
-    uint32_t seed[8] = { SHA_256_H1, SHA_256_H2, SHA_256_H3, SHA_256_H4, SHA_256_H5, SHA_256_H6, SHA_256_H7, SHA_256_H8 };
-    memcpy(hash, seed, sizeof(seed));
+    uint32_t* h = (uint32_t*)hash;
+    h[0] = SHA_256_H1, h[1] = SHA_256_H2, h[2] = SHA_256_H3, h[3] = SHA_256_H4, h[4] = SHA_256_H5, h[5] = SHA_256_H6, h[6] = SHA_256_H7, h[7] = SHA_256_H8;
 }
 
 uint64_t sha256_append_length(size_t length)

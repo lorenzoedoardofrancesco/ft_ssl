@@ -110,8 +110,8 @@ void md5(uint8_t* block_uint8, uint8_t* hash_uint8)
 
 void md5_seed(uint8_t* hash)
 {
-    uint32_t seed[4] = { A, B, C, D };
-    memcpy(hash, seed, sizeof(seed));
+    uint32_t* h = (uint32_t*)hash;
+    h[0] = A, h[1] = B, h[2] = C, h[3] = D;
 }
 
 uint64_t md5_append_length(size_t length) { return length; }

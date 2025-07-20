@@ -124,7 +124,7 @@ int digest_string_pipe(const md_options* opt, const char* s)
     size_t L = strlen(s);
     char   quoted[L + 3];
     quoted[0] = '"';
-    memcpy(quoted + 1, s, L);
+    for (size_t i = 0; i < L; ++i) quoted[i + 1] = s[i];
     quoted[L + 1] = '"';
     quoted[L + 2] = '\0';
 

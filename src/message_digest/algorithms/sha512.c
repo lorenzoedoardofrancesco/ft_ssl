@@ -94,26 +94,26 @@ void sha512(uint8_t* block_uint8, uint8_t* hash_uint8)
 
 void sha384_seed(uint8_t* hash)
 {
-    uint64_t seed[8] = { SHA_384_H1, SHA_384_H2, SHA_384_H3, SHA_384_H4, SHA_384_H5, SHA_384_H6, SHA_384_H7, SHA_384_H8 };
-    memcpy(hash, seed, sizeof(seed));
+    uint64_t* h = (uint64_t*)hash;
+    h[0] = SHA_384_H1, h[1] = SHA_384_H2, h[2] = SHA_384_H3, h[3] = SHA_384_H4, h[4] = SHA_384_H5, h[5] = SHA_384_H6, h[6] = SHA_384_H7, h[7] = SHA_384_H8;
 }
 
 void sha512_seed(uint8_t* hash)
 {
-    uint64_t seed[8] = { SHA_512_H1, SHA_512_H2, SHA_512_H3, SHA_512_H4, SHA_512_H5, SHA_512_H6, SHA_512_H7, SHA_512_H8 };
-    memcpy(hash, seed, sizeof(seed));
+    uint64_t* h = (uint64_t*)hash;
+    h[0] = SHA_512_H1, h[1] = SHA_512_H2, h[2] = SHA_512_H3, h[3] = SHA_512_H4, h[4] = SHA_512_H5, h[5] = SHA_512_H6, h[6] = SHA_512_H7, h[7] = SHA_512_H8;
 }
 
 void sha512_224_seed(uint8_t* hash)
 {
-    uint64_t seed[8] = { SHA_512_224_H1, SHA_512_224_H2, SHA_512_224_H3, SHA_512_224_H4, SHA_512_224_H5, SHA_512_224_H6, SHA_512_224_H7, SHA_512_224_H8 };
-    memcpy(hash, seed, sizeof(seed));
+    uint64_t* h = (uint64_t*)hash;
+    h[0] = SHA_512_224_H1, h[1] = SHA_512_224_H2, h[2] = SHA_512_224_H3, h[3] = SHA_512_224_H4, h[4] = SHA_512_224_H5, h[5] = SHA_512_224_H6, h[6] = SHA_512_224_H7, h[7] = SHA_512_224_H8;
 }
 
 void sha512_256_seed(uint8_t* hash)
 {
-    uint64_t seed[8] = { SHA_512_256_H1, SHA_512_256_H2, SHA_512_256_H3, SHA_512_256_H4, SHA_512_256_H5, SHA_512_256_H6, SHA_512_256_H7, SHA_512_256_H8 };
-    memcpy(hash, seed, sizeof(seed));
+    uint64_t* h = (uint64_t*)hash;
+    h[0] = SHA_512_256_H1, h[1] = SHA_512_256_H2, h[2] = SHA_512_256_H3, h[3] = SHA_512_256_H4, h[4] = SHA_512_256_H5, h[5] = SHA_512_256_H6, h[6] = SHA_512_256_H7, h[7] = SHA_512_256_H8;
 }
 
 uint64_t sha512_append_length(size_t length) { return length; }
