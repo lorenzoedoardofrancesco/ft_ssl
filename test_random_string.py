@@ -31,7 +31,7 @@ for alg in hash_algorithms:
         rand_str = ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=rand_len))
 
         start = time.perf_counter_ns()
-        your_hash = run_command(["./ft_ssl", alg], rand_str)
+        your_hash = run_command(["./ft_ssl", alg, "-q"], rand_str)
         your_times.append(time.perf_counter_ns() - start)
 
         start = time.perf_counter_ns()

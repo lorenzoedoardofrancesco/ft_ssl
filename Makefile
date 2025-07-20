@@ -14,10 +14,12 @@ LIBDIR      = lib
 SRC         = $(SRCDIR)/ft_ssl.c \
               $(SRCDIR)/utils.c \
               $(SRCDIR)/message_digest/message_digest.c \
-              $(SRCDIR)/message_digest/md5.c \
-              $(SRCDIR)/message_digest/sha256.c \
-              $(SRCDIR)/message_digest/sha512.c \
-              $(SRCDIR)/message_digest/whirlpool.c
+              $(SRCDIR)/message_digest/message_digest_utils.c \
+              $(SRCDIR)/message_digest/algorithms.c \
+              $(SRCDIR)/message_digest/algorithms/md5.c \
+              $(SRCDIR)/message_digest/algorithms/sha256.c \
+              $(SRCDIR)/message_digest/algorithms/sha512.c \
+              $(SRCDIR)/message_digest/algorithms/whirlpool.c
 
 OBJ         = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRC))
 DEP         = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.d,$(SRC))
@@ -27,7 +29,7 @@ all: $(NAME)
 -include $(DEP)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(MKDIR) $(OBJDIR) $(OBJDIR)/message_digest $(OBJDIR)/cipher
+	$(MKDIR) $(OBJDIR) $(OBJDIR)/message_digest $(OBJDIR)/message_digest/algorithms $(OBJDIR)/cipher
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 $(NAME): $(OBJ)

@@ -24,6 +24,6 @@ typedef struct
 } command_map;
 
 // utils.c
+
 void print(const char* fmt, ...);
 void print_error(const char* fmt, ...);
-void error(int ret);

@@ -1,6 +1,8 @@
 #pragma once
 #include "ft_ssl.h"
 
+// message_digest.c
+
 typedef enum {
     MD5_HASH_SIZE        = 16,
     SHA224_HASH_SIZE     = 28,
@@ -25,7 +27,7 @@ typedef struct hash_map_s
     size_t        word_size_bytes;      // Size of the internal word used by the algorithm (in bytes)
     size_t        block_size_bytes;     // Size of each data block processed (in bytes)
     size_t        length_field_bytes;   // Size of the length field appended during padding (in bytes)
-    
+
     hash_fn       compute_hash_fn;      // Function pointer to the main hash computation function
     seed_fn       init_seed_fn;         // Function pointer to the seed initialization function
     append_len_fn append_length_fn;     // Function pointer to function that appends length during finalization
@@ -36,13 +38,33 @@ typedef struct hash_map_s
     uint8_t       digest[64];           // Buffer to store the resulting hash (digest)
     int           input_fd;             // File descriptor for the input data source (e.g., open file or stdin)
     size_t        total_length;         // Total length of the input data (in bytes)
-    size_t        bytes_processed;      // Number of bytes processed so far
+    ssize_t       bytes_processed;      // Number of bytes processed so far
     size_t        buffer_index;         // Current index within the internal buffer for processing
 } hash_map;
 
 int message_digest(int argc, char* argv[]);
 
-// MD5
+// message_digest_utils.c
+
+typedef struct
+{
+    char*        hash_name;
+    bool         echo_stdin;
+    bool         quiet_mode;
+    bool         reverse_output;
+    int          first_path_index;
+    const char** s_arg;
+    size_t       s_count;
+} md_options;
+
+int digest_and_print(const md_options* opt, const char* label, int fd, bool echo);
+int digest_string_pipe(const md_options* opt, const char* s);
+
+// algorithms.c
+
+hash_map find_algorithm(const char* name);
+
+// md5.c
 
 #define MD5_WORDS_NUMBER 16
 #define MD5_WORD_SIZE sizeof(uint32_t)
@@ -53,7 +75,7 @@ void     md5(uint8_t* block, uint8_t* hash);
 void     md5_seed(uint8_t* hash);
 uint64_t md5_append_length(size_t length);
 
-// SHA-256
+// sha256.c
 
 #define SHA_256_WORDS_NUMBER 16
 #define SHA_256_WORD_SIZE sizeof(uint32_t)
@@ -65,21 +87,21 @@ void     sha224_seed(uint8_t* hash);
 void     sha256_seed(uint8_t* hash);
 uint64_t sha256_append_length(size_t length);
 
-// SHA-512
+// sha512.c
 
 #define SHA_512_WORDS_NUMBER 16
 #define SHA_512_WORD_SIZE sizeof(uint64_t)
 #define SHA_512_BLOCK_SIZE (SHA_512_WORDS_NUMBER * SHA_512_WORD_SIZE)
 #define SHA_512_LENGTH_FIELD_SIZE sizeof(__uint128_t)
 
-void sha512(uint8_t* block, uint8_t* hash);
-void sha384_seed(uint8_t* hash);
-void sha512_seed(uint8_t* hash);
-void sha512_224_seed(uint8_t* hash);
-void sha512_256_seed(uint8_t* hash);
+void     sha512(uint8_t* block, uint8_t* hash);
+void     sha384_seed(uint8_t* hash);
+void     sha512_seed(uint8_t* hash);
+void     sha512_224_seed(uint8_t* hash);
+void     sha512_256_seed(uint8_t* hash);
 uint64_t sha512_append_length(size_t length);
 
-// Whirlpool
+// whirlpool.c
 
 #define WHIRLPOOL_WORDS_NUMBER 8
 #define WHIRLPOOL_WORD_SIZE sizeof(uint64_t)

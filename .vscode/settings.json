@@ -4,6 +4,8 @@
         "cstdlib": "c",
         "ft_ssl.h": "c",
         "typeinfo": "c",
-        "bit": "c"
+        "bit": "c",
+        "stdarg.h": "c",
+        "message_digest.h": "c"
     }
 }

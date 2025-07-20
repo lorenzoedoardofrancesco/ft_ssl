@@ -1,6 +1,6 @@
-#include "ft_ssl.h"
-
 #include <stdarg.h>
+
+#include "ft_ssl.h"
 
 static void print_fd(int fd, const char* fmt, va_list args)
 {
@@ -30,12 +30,4 @@ void print_error(const char* fmt, ...)
     va_start(args, fmt);
     print_fd(STDERR_FILENO, fmt, args);
     va_end(args);
-}
-
-void error(int ret)
-{
-    if (ret == -1) {
-        print_error("Error: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
 }
